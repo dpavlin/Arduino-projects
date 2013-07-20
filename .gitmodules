@@ -1,3 +1,6 @@
 [submodule "libraries/SeeedRFIDLib"]
 	path = libraries/SeeedRFIDLib
 	url = https://github.com/johannrichard/SeeedRFIDLib.git
+[submodule "upstream/arduino-nrf24l01"]
+	path = upstream/arduino-nrf24l01
+	url = https://github.com/aaronds/arduino-nrf24l01.git
