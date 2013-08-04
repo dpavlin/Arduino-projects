@@ -68,15 +68,47 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature. 
 DallasTemperature sensors(&oneWire);
 
+
+#include <Adafruit_GFX.h>
+#include <Adafruit_PCD8544.h>
+
+// pin 7 - Serial clock out (SCLK)
+// pin 6 - Serial data out (DIN)
+// pin 5 - Data/Command select (D/C)
+// pin 4 - LCD chip select (CS)
+// pin 3 - LCD reset (RST)
+Adafruit_PCD8544 display = Adafruit_PCD8544(7, 6, 5, 4, 3);
+
+
 void setup()
 {
   Serial.begin(9600);
-  Serial.println("DHT11 TEST PROGRAM ");
-  Serial.print("LIBRARY VERSION: ");
+  Serial.println("DHT11 DS18B20 temperature");
+  Serial.print("DHT11 LIBRARY VERSION: ");
   Serial.println(DHT11LIB_VERSION);
   Serial.println();
+
+  // DS18B20
   sensors.begin();
+  
+  // Nokia 5110 display
+  display.begin();
+
+  // you can change the contrast around to adapt the display
+  // for the best viewing!
+  display.setContrast(50);
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.setCursor(0,0);
+  display.println("Ready");
+  display.display();
 }
+
+float dht11_temperature = 0;
+float dht11_humidity = 0;
+float ds18b20_temperature = 0;
 
 void loop()
 {
@@ -101,11 +133,13 @@ void loop()
 		break;
   }
 
+  dht11_humidity = (float)DHT11.humidity;
   Serial.print("Humidity (%): ");
-  Serial.println((float)DHT11.humidity, 2);
+  Serial.println(dht11_humidity, 2);
 
+  dht11_temperature = (float)DHT11.temperature;
   Serial.print("Temperature (oC): ");
-  Serial.println((float)DHT11.temperature, 2);
+  Serial.println(dht11_temperature, 2);
 
   Serial.print("Temperature (oF): ");
   Serial.println(Fahrenheit(DHT11.temperature), 2);
@@ -126,8 +160,20 @@ void loop()
 
   sensors.requestTemperatures(); // Send the command to get temperatures
   Serial.print("Temperature for the device 1 (index 0) is: ");
-  Serial.println(sensors.getTempCByIndex(0));  
-  
+  ds18b20_temperature = sensors.getTempCByIndex(0);
+  Serial.println(ds18b20_temperature);  
+
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.print(dht11_temperature, 0);
+  display.print("C ");
+  display.print(dht11_humidity, 0);
+  display.print("% ");
+  display.print(ds18b20_temperature, 2);
+  display.print("C");
+
+  display.display();
+
   delay(2000);
 }
 //
