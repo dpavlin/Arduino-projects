@@ -110,6 +110,10 @@ float dht11_temperature = 0;
 float dht11_humidity = 0;
 float ds18b20_temperature = 0;
 
+#define TEMP_SIZE LCDWIDTH
+float temp[TEMP_SIZE] = {0.0};
+int temp_pos = 0; // position in circular buffer above
+
 void loop()
 {
   Serial.println("\n");
@@ -163,6 +167,8 @@ void loop()
   ds18b20_temperature = sensors.getTempCByIndex(0);
   Serial.println(ds18b20_temperature);  
 
+  temp[temp_pos] = ds18b20_temperature;
+
   display.clearDisplay();
   display.setCursor(0,0);
   display.print(dht11_temperature, 0);
@@ -172,7 +178,39 @@ void loop()
   display.print(ds18b20_temperature, 2);
   display.print("C");
 
+  float min = temp[0], max = temp[0];
+  
+  for(int i = 0; i < TEMP_SIZE; i++) {
+//    Serial.print(temp[i]);
+//    Serial.print(" ");
+    if (temp[i] < min && temp[i] > 0) min = temp[i];
+    if (temp[i] > max) max = temp[i];
+  }
+  Serial.println();
+  
+  Serial.print("temperature range ");
+  Serial.print(min);
+  Serial.print("-");
+  Serial.println(max);
+
+  // draw right to left so most recent value is on the right
+  for(int x = TEMP_SIZE - 1; x >= 0; x--) {
+    int pos = ( x + temp_pos + 1 ) % TEMP_SIZE;
+    if ( temp[pos] > 0 ) {
+      int y = ( ( temp[pos] - min ) / ( max - min ) ) * ( LCDHEIGHT - 10 );
+      display.drawLine(x, LCDHEIGHT - y, x, LCDHEIGHT, BLACK);
+//      display.drawPixel(x,y + 10, BLACK);
+//      Serial.print(temp[pos],2);
+//      Serial.print(" ");
+    }
+  }
+  Serial.println();
+
+  // refresh LCD
   display.display();
+
+  // move slot in circular bugger
+  if ( ++temp_pos > TEMP_SIZE ) temp_pos = 0;
 
   delay(2000);
 }
