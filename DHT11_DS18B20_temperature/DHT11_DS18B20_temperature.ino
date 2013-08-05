@@ -79,6 +79,7 @@ DallasTemperature sensors(&oneWire);
 // pin 3 - LCD reset (RST)
 Adafruit_PCD8544 display = Adafruit_PCD8544(7, 6, 5, 4, 3);
 
+#define Backlight_Pin 9
 
 void setup()
 {
@@ -97,6 +98,12 @@ void setup()
   // you can change the contrast around to adapt the display
   // for the best viewing!
   display.setContrast(50);
+
+  pinMode(Backlight_Pin, OUTPUT);
+
+  pinMode(0, INPUT);
+  Serial.print("Backlight ");
+  Serial.println(analogRead(0));
 
   display.clearDisplay();
   display.setTextSize(1);
@@ -209,10 +216,22 @@ void loop()
   // refresh LCD
   display.display();
 
+  // pulse display backlight
+  int backlight = 0;
+
+  float old_temp = temp[(temp_pos + TEMP_SIZE - 1) % TEMP_SIZE];
+  if ( ds18b20_temperature < old_temp ) {
+    backlight = 32;
+  } else if ( ds18b20_temperature > old_temp ) {
+    backlight = 255;
+  }
+  analogWrite(Backlight_Pin, backlight);
+
+  delay(2000);
+
   // move slot in circular bugger
   if ( ++temp_pos > TEMP_SIZE ) temp_pos = 0;
 
-  delay(2000);
 }
 //
 // END OF FILE
