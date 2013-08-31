@@ -19,3 +19,6 @@
 [submodule "libraries/Adafruit_GFX"]
 	path = libraries/Adafruit_GFX
 	url = https://github.com/adafruit/Adafruit-GFX-Library.git
+[submodule "libraries/IRremote"]
+	path = libraries/IRremote
+	url = https://github.com/shirriff/Arduino-IRremote.git
