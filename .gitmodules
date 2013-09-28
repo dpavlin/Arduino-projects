@@ -22,3 +22,6 @@
 [submodule "libraries/IRremote"]
 	path = libraries/IRremote
 	url = https://github.com/shirriff/Arduino-IRremote.git
+[submodule "libraries/Manchester"]
+	path = libraries/Manchester
+	url = git@github.com:mchr3k/arduino-libs-manchester.git
