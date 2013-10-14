@@ -16,11 +16,12 @@ void setup() {
   
   mySwitch.enableTransmit(10); // with sender wired in receiving doesn't work, pin #10
 
-  Serial.print("press buttons on remote or send AB where A = socket (0..9), B = state (0 = off, 1 = on)\n");
+  Serial.print("press buttons on remote or send AB where A = socket (0..9), B = state (0 = off, 1 = on)\nB00...00 (24 digits) to send binary\n");
 }
 
 int serial_pos = 0;
 char serial_data[2]; // socket (0-9), state (0-1)
+char binary_data[24];
 
 void loop() {
   if (mySwitch.available()) {
@@ -31,6 +32,12 @@ void loop() {
   }
   if (Serial.available() > 0) {
      char input = Serial.read();
+     if ( input == 'B' ) {
+       Serial.readBytesUntil('\n', binary_data, sizeof(binary_data));
+       Serial.print("send B");
+       Serial.println( binary_data );
+       mySwitch.send( binary_data );
+     } else
      if ( input >= 0x30 && input <= 0x39 ) {
        input = input - 0x30; // ASCII to number
        serial_data[serial_pos++] = input;
