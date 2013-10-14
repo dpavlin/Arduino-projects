@@ -24,7 +24,9 @@ char serial_data[2]; // socket (0-9), state (0-1)
 
 void loop() {
   if (mySwitch.available()) {
-    output(mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength(), mySwitch.getReceivedDelay(), mySwitch.getReceivedRawdata(),mySwitch.getReceivedProtocol());
+    Serial.print(mySwitch.getReceivedBitlength());
+    Serial.print(" bits ");
+    Serial.println(mySwitch.getReceivedValue(), BIN);
     mySwitch.resetAvailable();
   }
   if (Serial.available() > 0) {
