@@ -25,3 +25,6 @@
 [submodule "libraries/Manchester"]
 	path = libraries/Manchester
 	url = git@github.com:mchr3k/arduino-libs-manchester.git
+[submodule "libraries/UIPEthernet"]
+	path = libraries/UIPEthernet
+	url = https://github.com/ntruchsess/arduino_uip.git
