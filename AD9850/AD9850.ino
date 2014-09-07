@@ -11,6 +11,10 @@
 #define FQ_UD 9       // Pin 9 - connect to freq update pin (FQ)
 #define DATA 10       // Pin 10 - connect to serial data load pin (DATA)
 #define RESET 11      // Pin 11 - connect to reset pin (RST).
+
+#define encoder_a 3
+#define encoder_b 4
+#define encoder_click 5
  
 #define pulseHigh(pin) {digitalWrite(pin, HIGH); digitalWrite(pin, LOW); }
 
@@ -51,12 +55,19 @@ void setup() {
   pulseHigh(RESET);
   pulseHigh(W_CLK);
   pulseHigh(FQ_UD);  // this pulse enables serial mode - Datasheet page 12 figure 10
+
+  // encoder
+  pinMode(encoder_a, INPUT);
+  pinMode(encoder_b, INPUT);
+  pinMode(encoder_click, INPUT);
   
   Serial.begin(9600);
   sendFrequency(user_freq);
 }
 
 double freq_step = 1.e5; // 0.1 MHz
+int encoder_state = LOW;
+int encoder_last  = LOW;
 
 void loop() {
   if (Serial.available()) {
@@ -70,4 +81,18 @@ void loop() {
        sendFrequency(user_freq);
      }
   }
+
+  encoder_state = digitalRead(encoder_a);
+  if ((encoder_last == LOW) && (encoder_state == HIGH)) {
+    if (digitalRead(encoder_b) == LOW) {
+      user_freq -= freq_step;
+    } else {
+      user_freq += freq_step;
+    }
+    sendFrequency(user_freq);
+  }
+  encoder_last = encoder_state;
+  
+  if(digitalRead(encoder_click) == LOW) sendFrequency( 1.e6 ); // reset to 1MHz
+
 }
