@@ -31,27 +31,27 @@ void scanI2CBus(byte from_addr, byte to_addr,
 // (like adding I2C comm code to figure out what kind of I2C device is there)
 void scanFunc( byte addr, byte result ) {
   Serial.print("addr: ");
-  Serial.print(addr,DEC);
+  Serial.print(addr,HEX);
   Serial.print( (result==0) ? " found!":"       ");
   Serial.print( (addr%4) ? "\t":"\n");
 }
 
 
-byte start_address = 1;
-byte end_address = 100;
+byte start_address = 0x01;
+byte end_address = 0x7F;
 
 // standard Arduino setup()
 void setup()
 {
     Wire.begin();
 
-    Serial.begin(19200);
+    Serial.begin(9600);
     Serial.println("\nI2CScanner ready!");
 
     Serial.print("starting scanning of I2C bus from ");
-    Serial.print(start_address,DEC);
+    Serial.print(start_address,HEX);
     Serial.print(" to ");
-    Serial.print(end_address,DEC);
+    Serial.print(end_address,HEX);
     Serial.println("...");
 
     // start the scan, will call "scanFunc()" on result from each address
