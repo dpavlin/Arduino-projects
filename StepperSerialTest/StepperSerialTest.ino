@@ -29,6 +29,12 @@ void loop() {
     } else if ( in == 98 ) { // b
       Serial.println("Double coil steps backward");
       motor.step(48, BACKWARD, DOUBLE);
+    } else if ( in >= 49 && in <= 57 ) {
+      int speed = ( in - 48 ) * 10;
+      Serial.print("speed ");
+      Serial.print(speed, DEC);
+      Serial.println(" rpm");
+      motor.setSpeed( speed );
     }
   }
 
