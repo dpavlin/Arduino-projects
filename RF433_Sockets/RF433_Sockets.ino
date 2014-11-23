@@ -55,7 +55,7 @@ void loop() {
        if ( serial_data[1] ) { // on
          switch ( serial_data[0] ) {
          case 1:
-           mySwitch.send("110101010111010000001100");
+           mySwitch.send("110101011101010000001100");
            break;
          case 2:
            mySwitch.send("110101010111010000001100");
