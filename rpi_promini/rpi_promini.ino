@@ -6,20 +6,33 @@
   RXD      TXD
   TXD      RXD
   GPIO6    RST
+  GND      GND
+  +5V      RAW
+
+           2    433Mhz receive
+           10   433Mhz send
+           11   DS18B20
 
 */
 
 #include <RCSwitch.h>
 
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 RCSwitch mySwitch = RCSwitch();
+
+// DS18B20 on pin 11
+OneWire oneWire(11);
+DallasTemperature sensors(&oneWire);
 
 void setup() {
   Serial.begin(9600);
   mySwitch.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2  
   mySwitch.enableTransmit(10); // with sender wired in receiving doesn't work, pin #10
 
-
+  // DS18B20
+  sensors.begin();
 
   Serial.print("press buttons on remote or send AB where A = socket (0..9), B = state (0 = off, 1 = on)\nB00...00 (24 digits) to send binary\n");
 }
@@ -37,6 +50,11 @@ void loop() {
   }
   if (Serial.available() > 0) {
      char input = Serial.read();
+     if ( input == 'T' ) {
+       Serial.print("DS18B20 temperature = ");
+       sensors.requestTemperatures();
+       Serial.println( sensors.getTempCByIndex(0) );       
+     } else
      if ( input == 'B' ) {
        Serial.readBytesUntil('\n', binary_data, sizeof(binary_data));
        Serial.print("send B");
