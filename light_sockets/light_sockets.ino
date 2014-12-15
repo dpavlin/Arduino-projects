@@ -10,21 +10,28 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(LED_PIN, HIGH);
 
-  for(int i = 0; i < strlen(code); i++) {
-    int i1 = 300;
-    int i2 = 900;
-    if (code[i] == '1' ) {
-      i1 = 900;
-      i2 = 300;
+  // we have to send same signal at least two times
+  for(int repeat = 0; repeat < 5; repeat++ ) {
+    
+    digitalWrite(LED_PIN, HIGH);
+
+    for(int i = 0; i < strlen(code); i++) {
+      int i1 = 300;
+      int i2 = 900;
+      if (code[i] == '1' ) {
+        i1 = 900;
+        i2 = 300;
+      }
+      digitalWrite(TX_PIN, HIGH);
+      delayMicroseconds(i1);
+      digitalWrite(TX_PIN, LOW);
+      delayMicroseconds(i2);
     }
-    digitalWrite(TX_PIN, HIGH);
-    delayMicroseconds(i1);
-    digitalWrite(TX_PIN, LOW);
-    delayMicroseconds(i2);
+
+    delayMicroseconds(2000); // guess
   }
-  
+
   digitalWrite(LED_PIN, LOW);  
   delay(3000);
 }
