@@ -34,3 +34,6 @@
 [submodule "libraries/AFMotor"]
 	path = libraries/AFMotor
 	url = https://github.com/adafruit/Adafruit-Motor-Shield-library.git
+[submodule "libraries/AccelStepper"]
+	path = libraries/AccelStepper
+	url = https://github.com/adafruit/AccelStepper
