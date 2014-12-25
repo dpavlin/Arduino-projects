@@ -12,6 +12,7 @@
            2    433Mhz receive
            10   433Mhz send
            11   DS18B20
+           13   513Mhz send
 
 */
 
@@ -25,6 +26,45 @@ RCSwitch mySwitch = RCSwitch();
 // DS18B20 on pin 11
 OneWire oneWire(11);
 DallasTemperature sensors(&oneWire);
+
+
+// 513Mhz light sockets
+#define TX_PIN 12
+#define LED_PIN 13
+
+int int_0 = 300; // ms
+int int_1 = 900; // ms
+int wait  = 2000; // ms
+int repeat = 5; // times
+
+void send_513(char *code) {
+  Serial.print("send 513Mhz ");
+  Serial.println(code);
+  
+  // we have to send same signal at least two times
+  for(int r = 0; r < repeat; r++ ) {
+
+    digitalWrite(LED_PIN, HIGH);
+
+    for(int i = 0; i < strlen(code); i++) {
+      int i1 = int_0;
+      int i2 = int_1;
+      if (code[i] == '1' ) {
+        i1 = int_1;
+        i2 = int_0;
+      }
+      digitalWrite(TX_PIN, HIGH);
+      delayMicroseconds(i1);
+      digitalWrite(TX_PIN, LOW);
+      delayMicroseconds(i2);
+    }
+
+    delayMicroseconds(wait); // guess
+  }
+
+  digitalWrite(LED_PIN, LOW);
+}
+
 
 void setup() {
   Serial.begin(9600);
@@ -55,12 +95,22 @@ void loop() {
        sensors.requestTemperatures();
        Serial.println( sensors.getTempCByIndex(0) );       
      } else
+
      if ( input == 'B' ) {
        Serial.readBytesUntil('\n', binary_data, sizeof(binary_data));
        Serial.print("send B");
        Serial.println( binary_data );
        mySwitch.send( binary_data );
      } else
+
+    // light sockets at 513 Mhz
+     if (input == 'a') {
+       send_513("1000100110110000000000010");
+     } else
+     if (input == 'b') {
+       send_513("1011001001011111000000010");
+     } else
+
      if ( input >= 0x30 && input <= 0x39 ) {
        input = input - 0x30; // ASCII to number
        serial_data[serial_pos++] = input;
