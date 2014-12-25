@@ -17,17 +17,23 @@ int repeat = 5; // times
 
 char code[27]; // 26 bits + null
 
-void setup() {
-   pinMode(LED_PIN, OUTPUT);
-   pinMode(TX_PIN, OUTPUT);
-   
-   Serial.begin(9600);
+
+void help(void) {
    Serial.println("1 or 2 to turn light sockets");
    Serial.println("q/a - 0 inteval +/- 100 ms");
    Serial.println("w/s - 1 inteval +/- 100 ms");
    Serial.println("e/d - wait      +/- 100 ms");
    Serial.println("r/f - repeat    +/- 1");
    Serial.println("U1000100110110000000000010 - send 26 bit user code");
+}
+
+
+void setup() {
+   pinMode(LED_PIN, OUTPUT);
+   pinMode(TX_PIN, OUTPUT);
+   
+   Serial.begin(9600);
+   help();
 }
 
 
@@ -108,6 +114,9 @@ void loop() {
       Serial.print('U');
       Serial.println( code );
       send( code );
+      
+    } else if (in == '?') {
+      help();
 
     } else {
       Serial.print("ignored ");
