@@ -9,20 +9,27 @@
 //   |  8320us    | 4500us  | 2530us
 
 // Defines
-#define allDataBits 42                                    // Number of data bits to expect
+#define DataBits0 4                                       // Number of data0 bits to expect
+#define DataBits1 32                                      // Number of data1 bits to expect
+#define allDataBits 36                                    // Number of data sum 0+1 bits to expect
 // isrFlags bit numbers
 #define F_HAVE_DATA 1                                     // 0=Nothing in read buffer, 1=Data in read buffer
 #define F_GOOD_DATA 2                                     // 0=Unverified data, 1=Verified (2 consecutive matching reads)
 #define F_CARRY_BIT 3                                     // Bit used to carry over bit shift from one long to the other
 #define F_STATE 7                                         // 0=Sync mode, 1=Data mode
 
+
+
 // Constants
-const unsigned long sync_MIN = 8120;                      // Minimum Sync time in micro seconds
-const unsigned long sync_MAX = 8520;
-const unsigned long bit1_MIN = 4300;
-const unsigned long bit1_MAX = 4700;
-const unsigned long bit0_MIN = 2330;
-const unsigned long bit0_MAX = 2730;
+const unsigned long sync_MIN = 4300;                      // Minimum Sync time in micro seconds
+const unsigned long sync_MAX = 4700;
+
+const unsigned long bit1_MIN = 2300;
+const unsigned long bit1_MAX = 2700;
+
+const unsigned long bit0_MIN = 1330;
+const unsigned long bit0_MAX = 1730;
+
 const unsigned long glitch_Length = 300;                  // Anything below this value is a glitch and will be ignored.
 
 // Interrupt variables
@@ -129,31 +136,51 @@ pinMode(13,OUTPUT); // Used for debugging
 void loop() {
   unsigned long myData0 = 0;
   unsigned long myData1 = 0;
-  if (bitRead(isrFlags,F_GOOD_DATA) == 1) {
+  if (bitRead(isrFlags,F_GOOD_DATA) == 1) 
+{
     // We have at least 2 consecutive matching reads
     myData0 = read_Buffer[0]; // Read the data spread over 2x 32 variables
     myData1 = read_Buffer[1];
     bitClear(isrFlags,F_HAVE_DATA); // Flag we have read the data
-    dec2binLong(myData0,10);
-    dec2binLong(myData1,32);
+    dec2binLong(myData0,DataBits0);
+    dec2binLong(myData1,DataBits1);
 
     Serial.print(" - Battery=");
-    byte H = (myData1 >> 30) & 0x3;   // Get Battery
+    byte H = (myData1 >> 26) & 0x3;   // Get Battery
     Serial.print(H);
+    
     Serial.print(" Channel=");
-    H = (myData1 >> 28) & 0x3;        // Get Channel
+    H = ((myData1 >> 24) & 0x3) + 1;        // Get Channel
     Serial.print(H);
+    
     Serial.print(" Temperature=");
-    byte ML = (myData1 >> 16) & 0xF0; // Get MMMM
-    H = (myData1 >> 24) & 0xF;        // Get LLLL
+    byte ML = (myData1 >> 12) & 0xF0; // Get MMMM
+//     Serial.print(" (M=");
+//     Serial.print(ML);
+    H = (myData1 >> 12) & 0xF;        // Get LLLL
+//     Serial.print(" L=");
+//     Serial.print(H);
     ML = ML | H;                      // OR MMMM & LLLL nibbles together
-    H = (myData1 >> 16) & 0xF;        // Get HHHH
-    int Temperature = (H << 8) | ML;  // Combine HHHH MMMMLLLL
-    Temperature = Temperature -900;   // Remove Constant offset
-    Serial.print(Temperature/10.0,1);
-    Serial.print("F Humidity=");
-    H = (myData1 >> 4) & 0xF0;        // Get HHHH
-    ML = (myData1 >> 12) & 0xF;       // Get LLLL
+    H = (myData1 >> 20) & 0xF;        // Get HHHH
+//     Serial.print(" H=");
+//     Serial.print(H);
+//     Serial.print(" T= ");
+    byte HH = 0;
+    if((myData1 >> 23) & 0x1 == 1) //23 bit
+         HH = 0xF;
+    int Temperature = (H << 8)|(HH << 12) | ML;  // Combine HHHH MMMMLLLL
+//     Serial.print( Temperature);
+//     Serial.print(") ");
+    // Temperature = Temperature*3; //F // Remove Constant offset
+    Serial.print(Temperature/10.0,1);   
+    Serial.print("C Humidity=");
+    H = (myData1 >> 0) & 0xF0;        // Get HHHH
+//     Serial.print(" (H=");
+//     Serial.print(H);
+    ML = (myData1 >> 0) & 0xF;       // Get LLLL
+//     Serial.print(" L=");
+//     Serial.print(ML);
+//     Serial.print(") ");
     ML = ML | H;                      // OR HHHH & LLLL nibbles together
     Serial.print(ML);
     Serial.println("%");
@@ -173,4 +200,3 @@ void dec2binLong(unsigned long myNum, byte NumberOfBits) {
     }
   }
 }
-
