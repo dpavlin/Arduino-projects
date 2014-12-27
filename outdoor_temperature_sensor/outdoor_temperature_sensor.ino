@@ -6,7 +6,8 @@
 //   |_________|  |______|  |___|  |
 //
 //   |  Sync      |    1    |  0   |
-//   |  8320us    | 4500us  | 2530us
+//   |  9780us    | 4420us  | 2410us
+//      9810        4410      2490
 
 // Defines
 #define DataBits0 4                                       // Number of data0 bits to expect
@@ -21,14 +22,14 @@
 
 
 // Constants
-const unsigned long sync_MIN = 4300;                      // Minimum Sync time in micro seconds
-const unsigned long sync_MAX = 4700;
+const unsigned long sync_MIN = 9600;                      // Minimum Sync time in micro seconds
+const unsigned long sync_MAX = 9900;
 
-const unsigned long bit1_MIN = 2300;
-const unsigned long bit1_MAX = 2700;
+const unsigned long bit1_MIN = 4200;
+const unsigned long bit1_MAX = 4600;
 
-const unsigned long bit0_MIN = 1330;
-const unsigned long bit0_MAX = 1730;
+const unsigned long bit0_MIN = 2200;
+const unsigned long bit0_MAX = 2600;
 
 const unsigned long glitch_Length = 300;                  // Anything below this value is a glitch and will be ignored.
 
@@ -184,6 +185,9 @@ void loop() {
     ML = ML | H;                      // OR HHHH & LLLL nibbles together
     Serial.print(ML);
     Serial.println("%");
+
+    // remote but so we don't see this packet again
+    bitClear(isrFlags, F_GOOD_DATA);
   }
   delay(100);
 }
