@@ -19,7 +19,7 @@
 #define F_CARRY_BIT 3                                     // Bit used to carry over bit shift from one long to the other
 #define F_STATE 7                                         // 0=Sync mode, 1=Data mode
 
-
+#define DEBUG 0
 
 // Constants
 const unsigned long sync_MIN = 9600;                      // Minimum Sync time in micro seconds
@@ -140,51 +140,37 @@ void loop() {
   if (bitRead(isrFlags,F_GOOD_DATA) == 1) 
 {
     // We have at least 2 consecutive matching reads
-    myData0 = read_Buffer[0]; // Read the data spread over 2x 32 variables
-    myData1 = read_Buffer[1];
+    myData0 = read_Buffer[0]; // first 4 bits
+    myData1 = read_Buffer[1]; // rest of 32 bits
     bitClear(isrFlags,F_HAVE_DATA); // Flag we have read the data
-    dec2binLong(myData0,DataBits0);
-    dec2binLong(myData1,DataBits1);
 
-    Serial.print(" - Battery=");
-    byte H = (myData1 >> 26) & 0x3;   // Get Battery
-    Serial.print(H);
-    
-    Serial.print(" Channel=");
-    H = ((myData1 >> 24) & 0x3) + 1;        // Get Channel
-    Serial.print(H);
-    
-    Serial.print(" Temperature=");
-    byte ML = (myData1 >> 12) & 0xF0; // Get MMMM
-//     Serial.print(" (M=");
-//     Serial.print(ML);
-    H = (myData1 >> 12) & 0xF;        // Get LLLL
-//     Serial.print(" L=");
-//     Serial.print(H);
-    ML = ML | H;                      // OR MMMM & LLLL nibbles together
-    H = (myData1 >> 20) & 0xF;        // Get HHHH
-//     Serial.print(" H=");
-//     Serial.print(H);
-//     Serial.print(" T= ");
-    byte HH = 0;
-    if((myData1 >> 23) & 0x1 == 1) //23 bit
-         HH = 0xF;
-    int Temperature = (H << 8)|(HH << 12) | ML;  // Combine HHHH MMMMLLLL
-//     Serial.print( Temperature);
-//     Serial.print(") ");
-    // Temperature = Temperature*3; //F // Remove Constant offset
-    Serial.print(Temperature/10.0,1);   
-    Serial.print("C Humidity=");
-    H = (myData1 >> 0) & 0xF0;        // Get HHHH
-//     Serial.print(" (H=");
-//     Serial.print(H);
-    ML = (myData1 >> 0) & 0xF;       // Get LLLL
-//     Serial.print(" L=");
-//     Serial.print(ML);
-//     Serial.print(") ");
-    ML = ML | H;                      // OR HHHH & LLLL nibbles together
-    Serial.print(ML);
-    Serial.println("%");
+if (DEBUG) {
+    Serial.print("# 0=");
+    dec2binLong(myData0,DataBits0);
+    Serial.print(" 1=");
+    dec2binLong(myData1,DataBits1);
+    Serial.println();
+}
+
+    Serial.print("temp=");
+    Serial.print((( myData1 >> 8 ) & 0xFFF ) / 10.0, 1);
+
+    Serial.print(" humidity=");
+    Serial.print( myData1 & 0xFF );
+
+    byte b1 = ( myData1 >> 20 ); // second byte from received packet
+
+    Serial.print(" button=");
+    Serial.print( b1 & 0x04);
+
+    Serial.print(" battery=");
+    Serial.print( b1 & 0x08);
+
+    Serial.print(" channel=");
+    Serial.print( ( b1 & 0x03 ) + 1 );
+
+    Serial.print(" rid=");
+    Serial.println( myData1 >> 24 );
 
     // remote but so we don't see this packet again
     bitClear(isrFlags, F_GOOD_DATA);
@@ -201,6 +187,7 @@ void dec2binLong(unsigned long myNum, byte NumberOfBits) {
       else 
       Serial.print("0");
       myNum = myNum << 1;
+      if ( i % 4 == 3 ) Serial.print(" ");
     }
   }
 }
