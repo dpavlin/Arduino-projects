@@ -21,6 +21,11 @@
 
 #define DEBUG 0
 
+// uno: pin 2 = int.0 or pin 3 = int.1 see
+// http://arduino.cc/en/Reference/attachInterrupt
+#define ISR_PIN 2
+#define ISR_INT 0
+
 // Constants
 const unsigned long sync_MIN = 9600;                      // Minimum Sync time in micro seconds
 const unsigned long sync_MAX = 9900;
@@ -41,9 +46,9 @@ unsigned long build_Buffer[] = {0,0};                     // Placeholder last da
 volatile unsigned long read_Buffer[] = {0,0};             // Placeholder last full data packet read.
 volatile byte isrFlags = 0;                               // Various flag bits
 
-void PinChangeISR0(){                                     // Pin 2 (Interrupt 0) service routine
+void PinChangeISR(){                                     // Pin 2 (Interrupt 0) service routine
   unsigned long Time = micros();                          // Get current time
-  if (digitalRead(2) == LOW) {
+  if (digitalRead(ISR_PIN) == LOW) {
 // Falling edge
     if (Time > (rise_Time + glitch_Length)) {
 // Not a glitch
@@ -126,12 +131,15 @@ digitalWrite(13,LOW); // Used for debugging
 
 
 void setup() {
-pinMode(13,OUTPUT); // Used for debugging
+  pinMode(13,OUTPUT); // Used for debugging
   Serial.begin(9600);
-  pinMode(2,INPUT);
-  Serial.println(F("ISR Pin 2 Configured For Input."));
-  attachInterrupt(0,PinChangeISR0,CHANGE);
-  Serial.println(F("Pin 2 ISR Function Attached. Here we go."));
+  pinMode(ISR_PIN,INPUT);
+  attachInterrupt(ISR_INT,PinChangeISR,CHANGE);
+  Serial.print("# Pin ");
+  Serial.print(ISR_PIN);
+  Serial.print(" int ");
+  Serial.print(ISR_INT);
+  Serial.println(" ISR attached");
 }
 
 void loop() {
