@@ -135,10 +135,16 @@ pinMode(13,OUTPUT); // Used for debugging
 }
 
 void loop() {
-  unsigned long myData0 = 0;
-  unsigned long myData1 = 0;
-  if (bitRead(isrFlags,F_GOOD_DATA) == 1) 
-{
+  if (bitRead(isrFlags,F_GOOD_DATA) == 1) {
+    serial_dump();
+    delay(100);
+  }
+}
+
+void serial_dump(void) {
+    unsigned long myData0 = 0;
+    unsigned long myData1 = 0;
+
     // We have at least 2 consecutive matching reads
     myData0 = read_Buffer[0]; // first 4 bits
     myData1 = read_Buffer[1]; // rest of 32 bits
@@ -176,8 +182,7 @@ if (DEBUG) {
 
     // remote but so we don't see this packet again
     bitClear(isrFlags, F_GOOD_DATA);
-  }
-  delay(100);
+
 }
 
 void dec2binLong(unsigned long myNum, byte NumberOfBits) {
