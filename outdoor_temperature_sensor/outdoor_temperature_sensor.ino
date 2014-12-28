@@ -153,7 +153,9 @@ if (DEBUG) {
 }
 
     Serial.print("temp=");
-    Serial.print((( myData1 >> 8 ) & 0xFFF ) / 10.0, 1);
+    int temp = ( myData1 >> 8 ) & 0xFFF;
+    if ( temp & 0x800 ) temp = temp | 0xF000;
+    Serial.print(temp / 10.0, 1);
 
     Serial.print(" humidity=");
     Serial.print( myData1 & 0xFF );
