@@ -204,6 +204,12 @@ digitalWrite(13,LOW); // Used for debugging
 
 
 void serial_outdoor_dump(void) {
+  
+    if (bitRead(isrFlags,F_GOOD_DATA) != 1) {
+       Serial.println("# no data");
+       return;
+    }
+    
     unsigned long myData0 = 0;
     unsigned long myData1 = 0;
 
