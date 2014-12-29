@@ -13,8 +13,9 @@
            3    433Mhz outdoor temperature sensor receiver
            10   433Mhz send
            11   DS18B20
-           13   513Mhz send
-
+           12   513Mhz send
+           13   status LED
+           
 */
 
 #include <RCSwitch.h>
