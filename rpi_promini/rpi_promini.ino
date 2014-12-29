@@ -96,14 +96,14 @@ void send_513(char *code) {
 #define ISR_INT 1
 
 // Constants
-const unsigned long sync_MIN = 9600;                      // Minimum Sync time in micro seconds
-const unsigned long sync_MAX = 9900;
+const unsigned long sync_MIN = 9000;                      // Minimum Sync time in micro seconds
+const unsigned long sync_MAX = 10000;
 
-const unsigned long bit1_MIN = 4200;
-const unsigned long bit1_MAX = 4600;
+const unsigned long bit1_MIN = 4000;
+const unsigned long bit1_MAX = 5000;
 
-const unsigned long bit0_MIN = 2200;
-const unsigned long bit0_MAX = 2600;
+const unsigned long bit0_MIN = 2000;
+const unsigned long bit0_MAX = 3000;
 
 const unsigned long glitch_Length = 300;                  // Anything below this value is a glitch and will be ignored.
 
@@ -115,6 +115,7 @@ unsigned long build_Buffer[] = {0,0};                     // Placeholder last da
 volatile unsigned long read_Buffer[] = {0,0};             // Placeholder last full data packet read.
 volatile byte isrFlags = 0;                               // Various flag bits
 volatile unsigned long last_Buffer[] = {0,0};
+unsigned long last_Time = 0;
 
 void PinChangeISR(){                                     // Pin 2 (Interrupt 0) service routine
   unsigned long Time = micros();                          // Get current time
@@ -170,6 +171,7 @@ void PinChangeISR(){                                     // Pin 2 (Interrupt 0) 
           read_Buffer[1] = build_Buffer[1];
           last_Buffer[0] = build_Buffer[0];
           last_Buffer[1] = build_Buffer[1];
+          last_Time = micros();
           bitSet(isrFlags, F_HAVE_DATA);                  // Set data available
           bitClear(isrFlags, F_STATE);                    // Set looking for Sync mode
 digitalWrite(13,HIGH); // Used for debugging
@@ -204,11 +206,15 @@ digitalWrite(13,LOW); // Used for debugging
 
 
 void serial_outdoor_dump(void) {
-  
-    if (bitRead(isrFlags,F_GOOD_DATA) != 1) {
-       Serial.println("# no data");
+
+
+    unsigned long t = micros() - last_Time;
+    if ( t > 60 * 1000 * 1000 ) { // 60 s timeout
+       Serial.print("# data too old ");
+       Serial.println(t);
        return;
     }
+
     
     unsigned long myData0 = 0;
     unsigned long myData1 = 0;
