@@ -37,3 +37,6 @@
 [submodule "libraries/AccelStepper"]
 	path = libraries/AccelStepper
 	url = https://github.com/adafruit/AccelStepper
+[submodule "libraries/DHT"]
+	path = libraries/DHT
+	url = https://github.com/markruys/arduino-DHT.git
