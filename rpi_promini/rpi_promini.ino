@@ -75,6 +75,10 @@ DHT dht;
 
 // setup
 
+void help() {
+  Serial.print("# press buttons on remote or send AB where A = socket (0..9), B = state (0 = off, 1 = on)\nB00...00 (24 digits) to send binary\n");
+}
+
 void setup() {
   Serial.begin(9600);
   mySwitch.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2  
@@ -86,7 +90,6 @@ void setup() {
   // DHT22
   dht.setup(8);
 
-  Serial.print("press buttons on remote or send AB where A = socket (0..9), B = state (0 = off, 1 = on)\nB00...00 (24 digits) to send binary\n");
 }
 
 int serial_pos = 0;
@@ -102,6 +105,11 @@ void loop() {
   }
   if (Serial.available() > 0) {
      char input = Serial.read();
+
+     if (input == '?' || input == 'h') {
+       help();
+     } else
+
      if ( input == 'T' ) {
        Serial.print("DS18B20 temperature = ");
        sensors.requestTemperatures();
@@ -110,7 +118,7 @@ void loop() {
 
      if ( input == 'B' ) {
        Serial.readBytesUntil('\n', binary_data, sizeof(binary_data));
-       Serial.print("send B");
+       Serial.print("# send B");
        Serial.println( binary_data );
        mySwitch.send( binary_data );
      } else
@@ -137,14 +145,14 @@ void loop() {
        input = input - 0x30; // ASCII to number
        serial_data[serial_pos++] = input;
      } else {     
-       Serial.print("ignore: ");
+       Serial.print("# ignore: ");
        Serial.println(input, HEX);
      }
      
      if ( serial_pos == 2 ) {
-       Serial.print("socket: ");
+       Serial.print("socket=");
        Serial.print(serial_data[0], DEC);
-       Serial.print(" state: ");
+       Serial.print(" state=");
        Serial.println(serial_data[1] ? "on" : "off");
 
        byte on = serial_data[1];
@@ -168,7 +176,7 @@ void loop() {
            	: mySwitch.send("001111110000000000000000");
            break;
          default:
-           Serial.print("invalid switch on number ");
+           Serial.print("# invalid switch on number ");
            Serial.println(serial_data[0], DEC);
 	}
 
