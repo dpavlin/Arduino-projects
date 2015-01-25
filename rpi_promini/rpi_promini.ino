@@ -150,7 +150,7 @@ void loop() {
      }
      
      if ( serial_pos == 2 ) {
-       Serial.print("socket=");
+       Serial.print("switch=");
        Serial.print(serial_data[0], DEC);
        Serial.print(" state=");
        Serial.println(serial_data[1] ? "on" : "off");
@@ -176,7 +176,7 @@ void loop() {
            	: mySwitch.send("001111110000000000000000");
            break;
          default:
-           Serial.print("# invalid switch on number ");
+           Serial.print("# invalid switch number ");
            Serial.println(serial_data[0], DEC);
 	}
 
