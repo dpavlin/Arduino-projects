@@ -38,7 +38,7 @@ DallasTemperature sensors(&oneWire);
 int int_0 = 300; // ms
 int int_1 = 900; // ms
 int wait  = 2000; // ms
-int repeat = 5; // times
+int repeat = 10; // times (5 times seem a little low for sensors which are more than 10m away)
 
 void send_513(char *code) {
   Serial.print("send 513Mhz ");
