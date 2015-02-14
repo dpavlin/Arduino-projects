@@ -38,7 +38,7 @@ DallasTemperature sensors(&oneWire);
 int int_0 = 300; // ms
 int int_1 = 900; // ms
 int wait  = 2000; // ms
-int repeat = 5; // times
+int repeat = 10; // times (5 times seem a little low for sensors which are more than 10m away)
 
 void send_513(char *code) {
   Serial.print("send 513Mhz ");
@@ -75,6 +75,10 @@ DHT dht;
 
 // setup
 
+void help() {
+  Serial.print("# press buttons on remote or send AB where A = socket (0..9), B = state (0 = off, 1 = on)\nB00...00 (24 digits) to send binary\n");
+}
+
 void setup() {
   Serial.begin(9600);
   mySwitch.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2  
@@ -86,7 +90,6 @@ void setup() {
   // DHT22
   dht.setup(8);
 
-  Serial.print("press buttons on remote or send AB where A = socket (0..9), B = state (0 = off, 1 = on)\nB00...00 (24 digits) to send binary\n");
 }
 
 int serial_pos = 0;
@@ -102,6 +105,11 @@ void loop() {
   }
   if (Serial.available() > 0) {
      char input = Serial.read();
+
+     if (input == '?' || input == 'h') {
+       help();
+     } else
+
      if ( input == 'T' ) {
        Serial.print("DS18B20 temperature = ");
        sensors.requestTemperatures();
@@ -110,7 +118,7 @@ void loop() {
 
      if ( input == 'B' ) {
        Serial.readBytesUntil('\n', binary_data, sizeof(binary_data));
-       Serial.print("send B");
+       Serial.print("# send B");
        Serial.println( binary_data );
        mySwitch.send( binary_data );
      } else
@@ -137,47 +145,43 @@ void loop() {
        input = input - 0x30; // ASCII to number
        serial_data[serial_pos++] = input;
      } else {     
-       Serial.print("ignore: ");
+       Serial.print("# ignore: ");
        Serial.println(input, HEX);
      }
      
      if ( serial_pos == 2 ) {
-       Serial.print("socket: ");
+       Serial.print("switch=");
        Serial.print(serial_data[0], DEC);
-       Serial.print(" state: ");
+       Serial.print(" state=");
        Serial.println(serial_data[1] ? "on" : "off");
-       serial_pos = 0;
-       if ( serial_data[1] ) { // on
-         switch ( serial_data[0] ) {
+
+       byte on = serial_data[1];
+
+	// switches, 433 Mhz set of 3
+	switch ( serial_data[0] ) {
          case 1:
-           mySwitch.send("110101011101010000001100");
-           break;
+           on	? mySwitch.send("110101011101010000001100")
+		: mySwitch.send("110101011101010000000011");
+	   break;
          case 2:
-           mySwitch.send("110101010111010000001100");
+           on	? mySwitch.send("110101010111010000001100")
+           	: mySwitch.send("110101010111010000000011");
            break;
          case 3:
-           mySwitch.send("110101010101110000001100");
+           on	? mySwitch.send("110101010101110000001100")
+           	: mySwitch.send("110101010101110000000011");
+           break;
+         case 4:
+           on	? mySwitch.send("001111110000000011000000")
+           	: mySwitch.send("001111110000000000000000");
            break;
          default:
-           Serial.print("invalid switch on number ");
+           Serial.print("# invalid switch number ");
            Serial.println(serial_data[0], DEC);
-         }
-       } else { // off
-         switch ( serial_data[0] ) {
-         case 1:
-           mySwitch.send("110101011101010000000011");
-           break;
-         case 2:
-           mySwitch.send("110101010111010000000011");
-           break;
-         case 3:
-           mySwitch.send("110101010101110000000011");
-           break;
-         default:
-           Serial.print("invalid switch off number ");
-           Serial.println(serial_data[0], DEC);
-         }
-       }
+	}
+
+	// reset for later
+	serial_pos = 0;
      }
   }
 }
