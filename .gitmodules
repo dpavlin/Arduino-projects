@@ -40,3 +40,6 @@
 [submodule "libraries/DHT"]
 	path = libraries/DHT
 	url = https://github.com/markruys/arduino-DHT.git
+[submodule "libraries/Adafruit_NeoPixel"]
+	path = libraries/Adafruit_NeoPixel
+	url = https://github.com/adafruit/Adafruit_NeoPixel
