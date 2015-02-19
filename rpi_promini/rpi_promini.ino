@@ -14,7 +14,7 @@
            8    DHT22
            10   433Mhz send
            11   DS18B20
-           12   513Mhz send
+           12   315Mhz send
            13   status LED
            
 */
@@ -31,7 +31,7 @@ OneWire oneWire(11);
 DallasTemperature sensors(&oneWire);
 
 
-// 513Mhz light sockets
+// 315Mhz light sockets
 #define TX_PIN 12
 #define LED_PIN 13
 #define LED_ON  digitalWrite(LED_PIN, HIGH);
@@ -42,8 +42,8 @@ int int_1 = 900; // ms
 int wait  = 2000; // ms
 int repeat = 20; // times (5 times seem a little low for sensors which are more than 10m away)
 
-void send_513(char *code) {
-  Serial.print("send 513Mhz ");
+void send_315(char *code) {
+  Serial.print("send 315Mhz ");
   Serial.println(code);
   
   // we have to send same signal at least two times
@@ -128,12 +128,12 @@ void loop() {
        LED_OFF
      } else
 
-    // light sockets at 513 Mhz
+    // light sockets at 315 Mhz
      if (input == 'a') {
-       send_513("1000100110110000000000010");
+       send_315("1000100110110000000000010");
      } else
      if (input == 'b') {
-       send_513("1011001001011111000000010");
+       send_315("1011001001011111000000010");
      } else
 
      // DHT22
