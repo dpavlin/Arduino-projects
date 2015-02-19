@@ -97,7 +97,7 @@ void setup() {
 
 int serial_pos = 0;
 char serial_data[2]; // socket (0-9), state (0-1)
-char binary_data[24];
+char binary_data[32];
 
 void loop() {
   if (mySwitch.available()) {
@@ -126,6 +126,13 @@ void loop() {
        LED_ON
        mySwitch.send( binary_data );
        LED_OFF
+     } else
+
+     if ( input == 'R' ) {
+       Serial.readBytesUntil('\n', binary_data, sizeof(binary_data));
+       Serial.print("# send 315 binary ");
+       Serial.println( binary_data );
+       send_315( binary_data );
      } else
 
     // light sockets at 315 Mhz
