@@ -34,11 +34,13 @@ DallasTemperature sensors(&oneWire);
 // 513Mhz light sockets
 #define TX_PIN 12
 #define LED_PIN 13
+#define LED_ON  digitalWrite(LED_PIN, HIGH);
+#define LED_OFF digitalWrite(LED_PIN, LOW);
 
 int int_0 = 300; // ms
 int int_1 = 900; // ms
 int wait  = 2000; // ms
-int repeat = 10; // times (5 times seem a little low for sensors which are more than 10m away)
+int repeat = 20; // times (5 times seem a little low for sensors which are more than 10m away)
 
 void send_513(char *code) {
   Serial.print("send 513Mhz ");
@@ -62,10 +64,11 @@ void send_513(char *code) {
       delayMicroseconds(i2);
     }
 
+    digitalWrite(LED_PIN, LOW);
+
     delayMicroseconds(wait); // guess
   }
 
-  digitalWrite(LED_PIN, LOW);
 }
 
 
@@ -120,7 +123,9 @@ void loop() {
        Serial.readBytesUntil('\n', binary_data, sizeof(binary_data));
        Serial.print("# send B");
        Serial.println( binary_data );
+       LED_ON
        mySwitch.send( binary_data );
+       LED_OFF
      } else
 
     // light sockets at 513 Mhz
@@ -157,6 +162,8 @@ void loop() {
 
        byte on = serial_data[1];
 
+       LED_ON
+
 	// switches, 433 Mhz set of 3
 	switch ( serial_data[0] ) {
          case 1:
@@ -179,6 +186,8 @@ void loop() {
            Serial.print("# invalid switch number ");
            Serial.println(serial_data[0], DEC);
 	}
+
+        LED_OFF
 
 	// reset for later
 	serial_pos = 0;
