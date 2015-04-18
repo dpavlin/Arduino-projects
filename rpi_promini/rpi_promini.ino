@@ -189,6 +189,26 @@ void loop() {
            on	? mySwitch.send("001111110000000011000000")
            	: mySwitch.send("001111110000000000000000");
            break;
+         case 5:
+/*
+		cca. 320Mhz 4 channel 4.8A 220V relay
+
+		A       1101001010011010011100010
+		B       1101001010011010011101000
+		C       1101001010011010011100100
+		D       1101001010011010011110000
+		off     1101001010011010011111000
+		on      1101001010011010011100110
+*/
+		switch ( on ) {
+			case '0': send_315( "1101001010011010011111000" );
+			case '1': send_315( "1101001010011010011100110" );
+			case 'A': send_315( "1101001010011010011100010" );
+			case 'B': send_315( "1101001010011010011101000" );
+			case 'C': send_315( "1101001010011010011100100" );
+			case 'D': send_315( "1101001010011010011110000" );
+			default:  Serial.println("# ERROR: use 0-off 1-on A B C D");
+		}
          default:
            Serial.print("# invalid switch number ");
            Serial.println(serial_data[0], DEC);
