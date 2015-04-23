@@ -26,8 +26,8 @@ void loop(void)
   float pressureKPA = 0, temperatureC = 0;    
 
   mpl115a2.getPT(&pressureKPA,&temperatureC);
-  Serial.print("Pressure: "); Serial.print(pressureKPA, 4); Serial.println(" kPa");
-  Serial.print("Temp: "); Serial.print(temperatureC, 1); Serial.println(" *C");
+  Serial.print("Pressure="); Serial.print(pressureKPA, 4); Serial.print(" kPa ");
+  Serial.print("Temp="); Serial.print(temperatureC, 1); Serial.println(" C");
 
 /*  
   pressureKPA = mpl115a2.getPressure();  
