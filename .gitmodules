@@ -43,3 +43,6 @@
 [submodule "libraries/Adafruit_NeoPixel"]
 	path = libraries/Adafruit_NeoPixel
 	url = https://github.com/adafruit/Adafruit_NeoPixel
+[submodule "libraries/Adafruit_MPL115A2"]
+	path = libraries/Adafruit_MPL115A2
+	url = https://github.com/adafruit/Adafruit_MPL115A2
