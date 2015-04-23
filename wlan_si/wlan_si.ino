@@ -5,6 +5,9 @@ Adafruit_MPL115A2 mpl115a2;
 
 int led = 5; // LED on d5
 
+// hardware based on https://dev.wlan-si.net/wiki/Telemetry/sensgw
+// original software https://github.com/SloMusti/sensgw
+
 void setup(void) 
 {
   Serial.begin(9600);
