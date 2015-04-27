@@ -4,6 +4,7 @@
 Adafruit_MPL115A2 mpl115a2;
 
 int led = 5; // LED on d5
+int pir = 6; // PIR on d6
 
 // hardware based on https://dev.wlan-si.net/wiki/Telemetry/sensgw
 // original software https://github.com/SloMusti/sensgw
@@ -17,6 +18,7 @@ void setup(void)
   mpl115a2.begin();
   
   pinMode(led, OUTPUT);
+  pinMode(pir, INPUT);
 }
 
 void loop(void) 
@@ -27,15 +29,11 @@ void loop(void)
 
   mpl115a2.getPT(&pressureKPA,&temperatureC);
   Serial.print("Pressure="); Serial.print(pressureKPA, 4); Serial.print(" kPa ");
-  Serial.print("Temp="); Serial.print(temperatureC, 1); Serial.println(" C");
+  Serial.print("Temp="); Serial.print(temperatureC, 1); Serial.print(" C");
 
-/*  
-  pressureKPA = mpl115a2.getPressure();  
-  Serial.print("Pressure (kPa): "); Serial.print(pressureKPA, 4); Serial.println(" kPa");
+  Serial.print(" PIR="); Serial.print( digitalRead(pir) );
 
-  temperatureC = mpl115a2.getTemperature();  
-  Serial.print("Temp (*C): "); Serial.print(temperatureC, 1); Serial.println(" *C");
-*/
+  Serial.println();
 
   digitalWrite(led, LOW);
   
