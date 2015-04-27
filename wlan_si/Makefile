@@ -4,7 +4,7 @@ all:
 pi=10.60.1.201
 
 flash:
-	scp /tmp/build*.tmp/*.hex pi@${pi}:/tmp/arduino.hex
+	scp `ls -t /tmp/build*.tmp/*.hex | head -1` pi@${pi}:/tmp/arduino.hex
 	ssh pi@${pi} sudo avrdude -c linuxgpio -p atmega328p -U flash:w:/tmp/arduino.hex
 
 serial:
