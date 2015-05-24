@@ -73,11 +73,20 @@ void loop() {
   if (Serial.available()) {
      int inByte = Serial.read();
      Serial.println(inByte, DEC);
-     if (inByte == 43 || inByte == 61) { // + or =
+     if (inByte == 43 || inByte == 61 or inByte == 67) { // + = left
        user_freq += freq_step;
        sendFrequency(user_freq);
-     } else if ( inByte == 45 ) {
+     } else if ( inByte == 45 || inByte == 68) { // - right
        user_freq -= freq_step; 
+       sendFrequency(user_freq);
+     } else if ( inByte == 65 ) { // up
+       user_freq -= freq_step * 10; 
+       sendFrequency(user_freq);
+     } else if ( inByte == 66 ) { // down
+       user_freq += freq_step * 10; 
+       sendFrequency(user_freq);
+     } else if ( inByte >= 48 && inByte <= 57) { // 0 .. 9
+       user_freq = ( inByte - 48 ) * 1.e6; 
        sendFrequency(user_freq);
      }
   }
