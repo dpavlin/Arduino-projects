@@ -7,10 +7,10 @@
  * Use freely
  */
  
-#define W_CLK 6	// connect to AD9850 module word load clock pin (CLK)
-#define FQ_UD 5	// connect to freq update pin (FQ)
-#define DATA  4	// connect to serial data load pin (DATA)
-#define RESET 3	// connect to reset pin (RST).
+#define W_CLK 7	// connect to AD9850 module word load clock pin (CLK)
+#define FQ_UD 6	// connect to freq update pin (FQ)
+#define DATA  5	// connect to serial data load pin (DATA)
+#define RESET 4	// connect to reset pin (RST).
 
 #define ENCODER 0
 #define encoder_a 7
