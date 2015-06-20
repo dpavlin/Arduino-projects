@@ -46,3 +46,6 @@
 [submodule "libraries/Adafruit_MPL115A2"]
 	path = libraries/Adafruit_MPL115A2
 	url = https://github.com/adafruit/Adafruit_MPL115A2
+[submodule "libraries/HX711"]
+	path = libraries/HX711
+	url = https://github.com/bogde/HX711
