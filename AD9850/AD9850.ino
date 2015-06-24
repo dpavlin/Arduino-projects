@@ -72,6 +72,8 @@ double freq_step = 1.e5; // 0.1 MHz
 int encoder_state = LOW;
 int encoder_last  = LOW;
 
+double new_freq = 0;
+
 void loop() {
   if (Serial.available()) {
      int inByte = Serial.read();
@@ -91,6 +93,18 @@ void loop() {
      } else if ( inByte >= 48 && inByte <= 57) { // 0 .. 9
        user_freq = ( inByte - 48 ) * 1.e6; 
        sendFrequency(user_freq);
+     } else if ( inByte == 13 ) { // enter
+       Serial.print("enter Mhz = ");
+       while (Serial.available() == 0);
+       new_freq = Serial.parseFloat();
+       while (Serial.available() > 0) { Serial.read(); } // suck enter and just from partFloat
+       Serial.println();
+       if ( new_freq == 0 ) {
+          Serial.println("# ignored");
+       } else {
+           user_freq = new_freq * 1.e6;
+           sendFrequency(user_freq);
+       }
      }
   }
 
