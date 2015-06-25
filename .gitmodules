@@ -52,3 +52,6 @@
 [submodule "hardware/Arduino_STM32"]
 	path = hardware/Arduino_STM32
 	url = https://github.com/rogerclarkmelbourne/Arduino_STM32
+[submodule "libraries/Adafruit-ST7735-Library"]
+	path = libraries/Adafruit-ST7735-Library
+	url = https://github.com/adafruit/Adafruit-ST7735-Library
