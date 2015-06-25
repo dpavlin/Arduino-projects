@@ -49,3 +49,6 @@
 [submodule "libraries/HX711"]
 	path = libraries/HX711
 	url = https://github.com/bogde/HX711
+[submodule "hardware/Arduino_STM32"]
+	path = hardware/Arduino_STM32
+	url = https://github.com/rogerclarkmelbourne/Arduino_STM32
