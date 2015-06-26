@@ -15,6 +15,7 @@ char msgs[5][15] = {"Right Key OK ",
 int  adc_key_val[5] ={30, 150, 360, 535, 760 };
 int NUM_KEYS = 5;
 int adc_key_in;
+int old_adc = 0;
 int key=-1;
 int oldkey=-1;
 
@@ -34,6 +35,10 @@ void setup() {
 void loop() {
 
 	adc_key_in = analogRead(0);    // read the value from the sensor  
+
+  if (old_adc != adc_key_in)
+    Serial.println(old_adc = adc_key_in);
+
   digitalWrite(13, HIGH);  
   key = get_key(adc_key_in);		        // convert into key press
 	
