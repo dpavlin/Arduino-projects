@@ -26,6 +26,9 @@ void setup() {
   //lcd.commandWrite(0x0F);//cursor on, display on, blink on.  (nasty!)
    lcd.clear();
   lcd.printIn("KEYPAD testing... pressing");
+
+  Serial.begin(115200);
+  Serial.println("Keypad testing over serial");
 }
 
 void loop() {
@@ -45,6 +48,10 @@ void loop() {
       if (key >=0){
       lcd.cursorTo(2, 0);  //line=2, x=0
   			lcd.printIn(msgs[key]);
+        Serial.print("adc=");
+        Serial.print(adc_key_in);
+        Serial.print(" key=");
+        Serial.println(key);
       }
     }
   }
