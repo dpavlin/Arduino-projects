@@ -12,7 +12,7 @@ char msgs[5][15] = {"Right Key OK ",
                     "Down Key OK  ", 
                     "Left Key OK  ", 
                     "Select Key OK" };
-int  adc_key_val[5] ={30, 150, 360, 535, 760 };
+int  adc_key_val[5] ={1, 520, 690, 770, 820 }; // max  
 int NUM_KEYS = 5;
 int adc_key_in;
 int old_adc = 0;
