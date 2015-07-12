@@ -8,11 +8,22 @@ by Elecfreaks
 ==========================================================================*/ 
 #include "pins_arduino.h"
 
-#define LCD_WR    9   //SCL
-#define LCD_RS   10   //SDA
-#define LCD_DC   11   //A0
-#define LCD_REST 12   //RESET
-#define LCD_CS   13   //CSE    
+// Arduino ProMini pinout
+// MISO - D12 not connected
+// LCD  - VCC
+// SCLK - D8
+// MOSI - D9
+// DC   - D10
+// RST  - D11
+// CS   - D12
+// GND  - GND
+// VCC  - 3.3V
+
+#define LCD_SCK   8
+#define LCD_MOSI  9
+#define LCD_DC   10
+#define LCD_REST 11
+#define LCD_CS   12
 
 volatile uint8_t *P_SCK, *P_MOSI, *P_DC, *P_RST, *P_CS;
 volatile uint8_t B_SCK, B_MOSI, B_DC, B_RST, B_CS;
@@ -65,10 +76,10 @@ void Address_set(unsigned int x1,unsigned int y1,unsigned int x2,unsigned int y2
  
 void LCD_Init(void)
 {
-        P_SCK = portOutputRegister(digitalPinToPort(LCD_WR));
-        B_SCK = digitalPinToBitMask(LCD_WR);
-  P_MOSI  = portOutputRegister(digitalPinToPort(LCD_RS));
-  B_MOSI  = digitalPinToBitMask(LCD_RS);
+  P_SCK = portOutputRegister(digitalPinToPort(LCD_SCK));
+  B_SCK = digitalPinToBitMask(LCD_SCK);
+  P_MOSI  = portOutputRegister(digitalPinToPort(LCD_MOSI));
+  B_MOSI  = digitalPinToBitMask(LCD_MOSI);
   P_DC  = portOutputRegister(digitalPinToPort(LCD_DC));
   B_DC  = digitalPinToBitMask(LCD_DC);
   P_RST = portOutputRegister(digitalPinToPort(LCD_REST));
