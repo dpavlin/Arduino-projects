@@ -33,6 +33,8 @@ void loop(void)
 
   Serial.print(" PIR="); Serial.print( digitalRead(pir) );
 
+  Serial.print(" A0="); Serial.print( analogRead(0) );
+
   Serial.println();
 
   digitalWrite(led, LOW);
