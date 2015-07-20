@@ -86,6 +86,7 @@ void setup() {
   Serial.begin(9600);
   mySwitch.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2  
   mySwitch.enableTransmit(10); // with sender wired in receiving doesn't work, pin #10
+  mySwitch.setRepeatTransmit(repeat); // or change to be different for 433 and 315 MHz
 
   // DS18B20
   sensors.begin();
