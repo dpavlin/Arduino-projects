@@ -55,3 +55,6 @@
 [submodule "libraries/Adafruit-ST7735-Library"]
 	path = libraries/Adafruit-ST7735-Library
 	url = https://github.com/adafruit/Adafruit-ST7735-Library
+[submodule "libraries/Adafruit_ILI9340"]
+	path = libraries/Adafruit_ILI9340
+	url = https://github.com/adafruit/Adafruit_ILI9340
