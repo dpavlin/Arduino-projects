@@ -58,3 +58,6 @@
 [submodule "libraries/Adafruit_ILI9340"]
 	path = libraries/Adafruit_ILI9340
 	url = https://github.com/adafruit/Adafruit_ILI9340
+[submodule "libraries/JTAG"]
+	path = libraries/JTAG
+	url = https://github.com/mrjimenez/JTAG
