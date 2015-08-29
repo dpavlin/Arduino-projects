@@ -154,7 +154,7 @@ void loop() {
        Serial.println(dht.getStatusString());
      }
 
-     if ( input >= 0x30 && input <= 0x39 ) {
+     if ( input >= 0x30 && input <= 0x39 && serial_pos < 2 ) {
        input = input - 0x30; // ASCII to number
        serial_data[serial_pos++] = input;
      } else {     
