@@ -3,3 +3,6 @@
 BOARD_TAG    = leonardo
 
 include /usr/share/arduino/Arduino.mk
+
+serial:
+	microcom -p ${DEVICE_PATH}
