@@ -13,8 +13,9 @@ void setup() {
   lcd.print("HX711");
 
   Serial.begin(115200);
-  Serial.println("HX711 Demo");
+  Serial.println("HX711");
 
+/*
   Serial.println("Before setting up the scale:");
   Serial.print("read: \t\t");
   Serial.println(scale.read());			// print a raw reading from the ADC
@@ -28,10 +29,10 @@ void setup() {
   Serial.print("get units: \t\t");
   Serial.println(scale.get_units(5), 1);	// print the average of 5 readings from the ADC minus tare weight (not set) divided 
 						// by the SCALE parameter (not set yet)  
-
+*/
   scale.set_scale(465.f);                      // this value is obtained by calibrating the scale with known weights; see the README for details
   scale.tare();				        // reset the scale to 0
-
+/*
   Serial.println("After setting up the scale:");
 
   Serial.print("read: \t\t");
@@ -48,6 +49,7 @@ void setup() {
 						// by the SCALE parameter set with set_scale
 
   Serial.println("Readings:");
+*/
 }
 
 #ifdef FLOAT_AVG
@@ -76,7 +78,7 @@ void loop() {
     sum += g_history[pos];
     if ( i % g_bucket == 0) {
 	float avg = sum / i;
-	Serial.print(" ");
+	Serial.print("\t");
 	Serial.print(avg, 3);
         lcd.print(avg);
         lcd.print(" ");
@@ -86,7 +88,7 @@ void loop() {
  
   int key = analogRead(0);
   Serial.print("\t");
-  Serial.println(key);
+  Serial.print(key);
 
   lcd.setCursor(12,1);
   lcd.print(key);
