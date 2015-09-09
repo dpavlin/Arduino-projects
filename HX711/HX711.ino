@@ -1,3 +1,5 @@
+#define FLOAT_AVG 0
+
 #include "HX711.h"
 
 // HX711.DOUT	- pin #A2
@@ -15,7 +17,6 @@ void setup() {
   Serial.begin(115200);
   Serial.println("HX711");
 
-/*
   Serial.println("Before setting up the scale:");
   Serial.print("read: \t\t");
   Serial.println(scale.read());			// print a raw reading from the ADC
@@ -29,10 +30,9 @@ void setup() {
   Serial.print("get units: \t\t");
   Serial.println(scale.get_units(5), 1);	// print the average of 5 readings from the ADC minus tare weight (not set) divided 
 						// by the SCALE parameter (not set yet)  
-*/
   scale.set_scale(465.f);                      // this value is obtained by calibrating the scale with known weights; see the README for details
   scale.tare();				        // reset the scale to 0
-/*
+
   Serial.println("After setting up the scale:");
 
   Serial.print("read: \t\t");
@@ -49,26 +49,33 @@ void setup() {
 						// by the SCALE parameter set with set_scale
 
   Serial.println("Readings:");
-*/
 }
 
 #ifdef FLOAT_AVG
-#define g_bucket 10
+#define g_bucket 20
 #define g_size g_bucket*3
 float g_history[g_size];
 int g_pos = 0;
 #endif
 
 void loop() {
+
+  lcd.setCursor(0,1);
+  uint32_t adc = scale.read();
+  lcd.print(adc);
+  lcd.print(" ");
+
+  Serial.print(adc);
+  Serial.print("\t");
+
   float g = scale.get_units();
   Serial.print(g);
-
  
   lcd.setCursor(0,0); // col,row
   lcd.print(g);
   lcd.print(" ");
 
-#ifdef FLOAT_AVG
+#if FLOAT_AVG
   g_history[g_pos++] = g; // insert into circular buffer
   g_pos %= g_size;
 
@@ -79,7 +86,7 @@ void loop() {
     if ( i % g_bucket == 0) {
 	float avg = sum / i;
 	Serial.print("\t");
-	Serial.print(avg, 3);
+	Serial.print(avg, 2);
         lcd.print(avg);
         lcd.print(" ");
     }
@@ -94,7 +101,6 @@ void loop() {
   lcd.print(key);
   lcd.print("   ");
 
-  lcd.setCursor(0,1);
   if ( key > 1000 ) {
 	// nothing pressed
   } else if ( key > 800 ) {
@@ -102,15 +108,9 @@ void loop() {
         scale.tare();
   }
 
-  uint32_t adc = scale.read();
-  lcd.print(adc);
-  lcd.print(" ");
-
-  Serial.print("\t");
-  Serial.println(adc);
-
 
 //  scale.power_down();			        // put the ADC in sleep mode
 //  delay(100);
 //  scale.power_up();
+  Serial.println();
 }
