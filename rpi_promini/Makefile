@@ -1,3 +1,6 @@
+include /usr/share/arduino/Arduino.mk
+BOARD_TAG=pro328
+
 all:
 	echo "flash serial"
 
