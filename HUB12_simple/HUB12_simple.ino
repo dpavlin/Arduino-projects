@@ -3,6 +3,7 @@
 *
 *  Sample sketch for driving 32x16 LED PANEL (1/4 scan) with
 *  HUB12 protocol
+*  http://blog.vettore.org/building-a-large-led-sign-with-inexpensive-standard-modules-and-arduino/
 *
 *************************************************************/
  

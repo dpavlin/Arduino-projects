@@ -5,6 +5,7 @@
 *  HUB12 protocol
 *  Support for multiple cascaded panels
 *  Get text TO DISPLAY from the serial monitor
+*  http://blog.vettore.org/building-a-large-led-sign-with-inexpensive-standard-modules-and-arduino/
 *
 *************************************************************/
  
