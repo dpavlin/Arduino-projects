@@ -24,8 +24,8 @@
 #define WIDTH   64
 #define HEIGHT  16
 
-// LEDMatrix(a, b, c, d, oe, r1, stb, clk);
-LEDMatrix matrix(4, 5, 6, 7, 8, 9, 10, 11);
+//     LEDMatrix(a, b, c, d, oe, r1, stb, clk);
+LEDMatrix matrix(4, 5, 6, 7, 9,  11, 10,  13);
 
 // Display Buffer 128 = 64 * 16 / 8
 uint8_t displaybuf[WIDTH * HEIGHT / 8] = {

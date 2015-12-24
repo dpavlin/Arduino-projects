@@ -21,6 +21,12 @@
 #include "LEDMatrix.h"
 #include "Arduino.h"
 
+#define USE_SPI 1
+
+#if USE_SPI
+#include <SPI.h>
+#endif
+
 #if 0
 #define ASSERT(e)   if (!(e)) { Serial.println(#e); while (1); }
 #else
@@ -40,6 +46,9 @@ LEDMatrix::LEDMatrix(uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t oe, uin
 
     mask = 0xff;
     state = 0;
+#if USE_SPI
+	SPI.begin();
+#endif
 }
 
 void LEDMatrix::begin(uint8_t *displaybuf, uint16_t width, uint16_t height)
@@ -136,11 +145,15 @@ void LEDMatrix::scan()
             uint8_t pixels = *ptr;
             ptr++;
             pixels = pixels ^ mask;     // reverse: mask = 0xff, normal: mask =0x00
+#if USE_SPI
+		SPI.transfer(pixels);
+#else
             for (uint8_t bit = 0; bit < 8; bit++) {
                 digitalWrite(clk, LOW);
                 digitalWrite(r1, pixels & (0x80 >> bit));
                 digitalWrite(clk, HIGH);
             }
+#endif
         }
     }
 
