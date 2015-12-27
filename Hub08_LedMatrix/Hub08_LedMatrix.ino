@@ -21,7 +21,7 @@
 #include "LEDMatrix.h"
 #include "font.h"
 
-#define WIDTH   128 // 2 panels * 64
+#define WIDTH   64*1 // 2 panels * 64
 #define HEIGHT  16
 
 //     LEDMatrix(a, b, c, d, oe, r1, stb, clk);
@@ -117,15 +117,12 @@ void matrixDelay(int x) {
   
 }
 
+String poruka="X       XX      XOX     XOOX    XOoOX   XOooOX  XOoIoOX XOoiioOX        ";
+//String poruka="        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras blandit libero id ex dapibus suscipit. Proin vitae cursus eros. Ut porttitor congue metus at viverra. In consectetur ex massa.";
+
 void loop()
 {
-    matrix.clear();
-    int p=0;
-//    String poruka="X       XX      XOX     XOOX    XOoOX   XOooOX  XOoIoOX XOoiioOX        ";
-    String poruka="        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras blandit libero id ex dapibus suscipit. Proin vitae cursus eros. Ut porttitor congue metus at viverra. In consectetur ex massa.";
-
     for (int p=0; p<poruka.length() ; p++) {
-	  matrix.clear();
 	  matrixPrint(poruka.substring(p,p+(WIDTH/8)+1));
           for (int o=0; o<8; o++) {
 		uint8_t *src  = displaybuf_w;
@@ -139,12 +136,11 @@ void loop()
 				j++;
 #if USE_SPI
 				matrix.scan();
+#else
+				if ( x == 0 ) matrix.scan();
 #endif
 			}
 			j++; // skip off-screen character used for smooth scroll
-#if ! USE_SPI
-			matrix.scan();
-#endif
                 }
           }
     }
