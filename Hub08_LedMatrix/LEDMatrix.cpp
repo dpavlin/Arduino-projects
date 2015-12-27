@@ -21,7 +21,7 @@
 #include "LEDMatrix.h"
 #include "Arduino.h"
 
-#define USE_SPI 1
+#define USE_SPI 0
 
 #if USE_SPI
 #include <SPI.h>
@@ -157,13 +157,13 @@ void LEDMatrix::scan()
         }
     }
 
-    digitalWrite(oe, HIGH);              // disable display
-
     // select row
     digitalWrite(a, (row & 0x01));
     digitalWrite(b, (row & 0x02));
     digitalWrite(c, (row & 0x04));
     digitalWrite(d, (row & 0x08));
+
+    digitalWrite(oe, HIGH);              // disable display
 
     // latch data
     digitalWrite(stb, LOW);
