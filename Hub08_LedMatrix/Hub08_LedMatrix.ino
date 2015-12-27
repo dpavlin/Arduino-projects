@@ -137,10 +137,14 @@ void loop()
 				*(dest + i) = ( *(src + j) << o ) | (( *(src + j + 1) & ( 0xff << 8 - o ) ) >> 8 - o );
 				i++;
 				j++;
+#if USE_SPI
 				matrix.scan();
+#endif
 			}
 			j++; // skip off-screen character used for smooth scroll
-//			matrix.scan();
+#if ! USE_SPI
+			matrix.scan();
+#endif
                 }
           }
     }
