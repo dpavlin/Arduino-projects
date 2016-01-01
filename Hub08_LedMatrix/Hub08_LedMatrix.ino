@@ -33,7 +33,7 @@
 LEDMatrix matrix(4, 5, 6, 7, 9,  11, 10,  13);
 
 // Display Buffer 128 = 64 * 16 / 8
-uint8_t displaybuf[(WIDTH/8) * HEIGHT];
+uint8_t displaybuf[(WIDTH/8) * HEIGHT*2];
 
 uint8_t displaybuf_w[((WIDTH/8)+1) * HEIGHT];
 
@@ -146,7 +146,7 @@ void loop()
 
 	for (int o=0; o<8; o++) {
 		uint8_t *src  = displaybuf_w + pos;
-		uint8_t *dest = displaybuf;
+		uint8_t *dest = matrix.offscreen_buffer();
 
 		int i = 0;
 
@@ -168,6 +168,7 @@ void loop()
 				i++;
 			}
                 }
+                matrix.swap();
           }
     }
 

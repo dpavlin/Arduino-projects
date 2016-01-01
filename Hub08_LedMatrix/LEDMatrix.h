@@ -25,7 +25,7 @@
  #include <stdint.h>
 
 // use hardware SPI
-#define USE_SPI 1
+#define USE_SPI 0
 
 class LEDMatrix {
 public:
@@ -72,6 +72,10 @@ public:
      */
     void scan();
 
+    void swap();
+
+    uint8_t *offscreen_buffer();
+
     void reverse();
 
     uint8_t isReversed();
@@ -87,6 +91,7 @@ private:
     uint16_t height;
     uint8_t  mask;
     uint8_t  state;
+    uint8_t  buffer;
 };
 
 #endif
