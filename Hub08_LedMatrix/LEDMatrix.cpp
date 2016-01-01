@@ -21,8 +21,6 @@
 #include "LEDMatrix.h"
 #include "Arduino.h"
 
-#define USE_SPI 0
-
 #if USE_SPI
 #include <SPI.h>
 #endif

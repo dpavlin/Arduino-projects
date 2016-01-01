@@ -24,14 +24,18 @@
 #define WIDTH   64*1 // 2 panels * 64
 #define HEIGHT  16
 
+#if USE_SPI
+#include <SPI.h> // Arduino IDE compilation won't work without this
+#endif
+
+// hub08 pinout: la lb lc ld en  r1  lat  clk            
 //     LEDMatrix(a, b, c, d, oe, r1, stb, clk);
 LEDMatrix matrix(4, 5, 6, 7, 9,  11, 10,  13);
 
 // Display Buffer 128 = 64 * 16 / 8
-uint8_t displaybuf[WIDTH * HEIGHT / 8];
+uint8_t displaybuf[(WIDTH/8) * HEIGHT];
 
 uint8_t displaybuf_w[((WIDTH/8)+1) * HEIGHT];
-
 
 byte cell[16];
 
@@ -51,7 +55,7 @@ void MatrixWriteCharacter(int x,int y, char character)
   }
 
   //uint8_t *pDst = displaybuf_w + (y) * ((WIDTH / 8) + 1) + x  ;
-  uint8_t *pDst = displaybuf_w + x  ;
+  uint8_t *pDst = displaybuf_w + x  + y * ((WIDTH/8)+1);
 
   byte mask = 1;
   for(int j=0; j<8; j++) {
@@ -105,7 +109,7 @@ void matrixPrint(String c) {
 void setup()
 {
     matrix.begin(displaybuf, WIDTH, HEIGHT);
-    Serial.begin(57600);
+    Serial.begin(115200);
     matrix.clear();
     //matrixPrint("12345678");
     // uint8_t *pDst = displaybuf + y * (WIDTH / 8) + x / 8;
@@ -117,30 +121,52 @@ void matrixDelay(int x) {
   
 }
 
-String poruka="X       XX      XOX     XOOX    XOoOX   XOooOX  XOoIoOX XOoiioOX        ";
+//String poruka="X       XX      XOX     XOOX    XOoOX   XOooOX  XOoIoOX XOoiioOX        ";
 //String poruka="        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras blandit libero id ex dapibus suscipit. Proin vitae cursus eros. Ut porttitor congue metus at viverra. In consectetur ex massa.";
+String poruka="!\"#$%&'()*+,-./0123456789:;<=>?@AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqReSsTtUuVvWwXxYyZz[\\]^_`{|}~";
+//String poruka="~";
+
+int pos = 0; // position in circular display
 
 void loop()
 {
     for (int p=0; p<poruka.length() ; p++) {
-	  matrixPrint(poruka.substring(p,p+(WIDTH/8)+1));
-          for (int o=0; o<8; o++) {
-		uint8_t *src  = displaybuf_w;
+	pos = ( pos + 1 ) % (( WIDTH / 8 )+1);
+//	int pos_ch = ( pos + (WIDTH/8) ) % (( WIDTH / 8 )+1);
+	int pos_ch = ( pos + (WIDTH/8) ) % (( WIDTH / 8 )+1);
+	MatrixWriteCharacter(pos_ch,0,poruka.charAt(p));
+
+	int step_up = ((WIDTH/8)+1)-pos; // move up one line when falling off the end of circular buffer
+
+	Serial.print(pos);
+	Serial.print(" step_up=");
+	Serial.print(step_up);
+	Serial.print(" char=");
+	Serial.println(poruka.charAt(p));
+
+	for (int o=0; o<8; o++) {
+		uint8_t *src  = displaybuf_w + pos;
 		uint8_t *dest = displaybuf;
+
 		int i = 0;
-		int j = 0;
+
 		for (int y = 0; y < HEIGHT; y++ ) {
 			for (int x = 0; x < (WIDTH/8); x++) {
-				*(dest + i) = ( *(src + j) << o ) | (( *(src + j + 1) & ( 0xff << 8 - o ) ) >> 8 - o );
-				i++;
-				j++;
+
+				int j  = ( x   < step_up ? y : y-1 ) * ((WIDTH/8)+1) + x;
+				int j1 = ( x+1 < step_up ? y : y-1 ) * ((WIDTH/8)+1) + x+1;
+
+				*(dest + i) = ( *(src + j) << o ) | (( *(src + j1) & ( 0xff << 8 - o ) ) >> 8 - o );
+//				*(dest + i) = *(src + j);
 #if USE_SPI
 				matrix.scan();
+				delayMicroseconds(100 / (WIDTH / 64));
 #else
-				if ( x == 0 ) matrix.scan();
+				matrix.scan();
+				delayMicroseconds(100 / (WIDTH / 64));
 #endif
+				i++;
 			}
-			j++; // skip off-screen character used for smooth scroll
                 }
           }
     }

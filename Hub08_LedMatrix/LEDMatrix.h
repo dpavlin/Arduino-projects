@@ -24,6 +24,9 @@
 
  #include <stdint.h>
 
+// use hardware SPI
+#define USE_SPI 1
+
 class LEDMatrix {
 public:
     LEDMatrix(uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t oe, uint8_t r1, uint8_t stb, uint8_t clk);
