@@ -8,7 +8,7 @@
 #ifndef ps2_h
 #define ps2_h
 
-#include "WProgram.h"
+#include "Arduino.h"
 
 class PS2
 {
