@@ -61,3 +61,6 @@
 [submodule "libraries/JTAG"]
 	path = libraries/JTAG
 	url = https://github.com/mrjimenez/JTAG
+[submodule "libraries/MsTimer2"]
+	path = libraries/MsTimer2
+	url = https://github.com/PaulStoffregen/MsTimer2
