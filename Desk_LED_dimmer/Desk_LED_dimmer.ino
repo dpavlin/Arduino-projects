@@ -5,8 +5,8 @@
 
 const int led_pin = 13;
 const int buzzer_pin = 4;
-const int mosfet_pins[] = { 9, 10, 6 };
-int mosfet_pwm[] = { 0, 0, 0 };
+const int mosfet_pins[] = { 9, 10, 6 }; // PWM pins: 3,5,6,9,10,11
+int mosfet_pwm[] = { 0, 0, 0 }; // current state of mosfet pwm
 
 #include <ps2.h>
 PS2 mouse(8, 7); // PS2 synaptics clock, data
@@ -24,24 +24,24 @@ void setup() {
   mouse.read();  // ack byte
   mouse.read();  // blank */
   mouse.read();  // blank */
-  mouse.write(0xf0);  // remote mode
+  mouse.write(0xf0);  // remote mode -- send motion data only on $EB (read data) command
   mouse.read();  // ack
   delayMicroseconds(100);
-  mouse.write(0xe8);
+  mouse.write(0xe8); // set resolution
   mouse.read();  // ack byte
-  mouse.write(0x03); // x1  ( x1 * 64  +  x2 * 16  +  x3 * 4  +  x4   == modebyte )
-  mouse.read();  // ack byte
-  mouse.write(0xe8);
-  mouse.read();  // ack byte
-  mouse.write(0x00); // x2
+  mouse.write(0x03); // rr  ( rr * 64  +  ss * 16  +  tt * 4  +  uu  == modebyte )
   mouse.read();  // ack byte
   mouse.write(0xe8);
   mouse.read();  // ack byte
-  mouse.write(0x01); // x3
+  mouse.write(0x00); // ss
   mouse.read();  // ack byte
   mouse.write(0xe8);
   mouse.read();  // ack byte
-  mouse.write(0x00); // x4
+  mouse.write(0x01); // tt
+  mouse.read();  // ack byte
+  mouse.write(0xe8);
+  mouse.read();  // ack byte
+  mouse.write(0x00); // uu
   mouse.read();  // ack byte
   mouse.write(0xf3); // set samplerate 20 (stores mode) 
   mouse.read();  // ack byte
@@ -91,7 +91,7 @@ void loop() {
 
   unsigned int cx,cy;
 
-  mouse.write(0xeb);
+  mouse.write(0xeb); // read data
   mouse.read();
   
   mstat1 = mouse.read();
