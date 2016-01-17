@@ -6,23 +6,39 @@
 const int led_pin = 13;
 const int buzzer_pin = 4;
 const int mosfet_pins[] = { 9, 10, 6 }; // PWM pins: 3,5,6,9,10,11
-int mosfet_pwm[] = { 0, 0, 0 }; // current state of mosfet pwm
+const int ldr_pin = A3; // LDR +5 -- A3 -[10K]- GND
+const int pir_pin = A2;
 
+#define TOUCHPAD 1 // set this to 0 if debugging without touchpad
+
+#if TOUCHPAD
 #include <ps2.h>
 PS2 mouse(8, 7); // PS2 synaptics clock, data
+#endif
+
+int mosfet_pwm[] = { 0, 0, 0 }; // current state of mosfet pwm
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("setup");
 
   pinMode(led_pin, OUTPUT);
+  digitalWrite(led_pin, HIGH); // signal reset
+
   pinMode(buzzer_pin, OUTPUT);
 
-  for(int i=0; i<sizeof(mosfet_pins); i++) pinMode(mosfet_pins[i], OUTPUT);
+  for(int i=0; i<=2; i++) pinMode(mosfet_pins[i], OUTPUT);
 
+  pinMode(ldr_pin, INPUT);
+  pinMode(pir_pin, INPUT);
+
+#if TOUCHPAD
+  Serial.println("Synaptics touchpad init");
 
   mouse.write(0xff);  // reset
   mouse.read();  // ack byte
   mouse.read();  // blank */
+
   mouse.read();  // blank */
   mouse.write(0xf0);  // remote mode -- send motion data only on $EB (read data) command
   mouse.read();  // ack
@@ -49,8 +65,11 @@ void setup() {
   mouse.read();  // ack byte
   delayMicroseconds(100); 
 
+#endif
 
   Serial.println("Commands: b - beep, qwe/asd/zxc - MOSFETs");
+
+  digitalWrite(led_pin, LOW);
 
 }
 
@@ -79,9 +98,16 @@ void mosfet(int nr, int value) {
 unsigned int last_cx = 0;
 unsigned int last_cy = 0;         
 
+int last_ldr = 0;
+// number of LDR reading to average
+#define LDR_SIZE 100
+static int ldr_sum = 0;
+static int ldr_count = 0;
 
+int last_pir = 0;
 void loop() {
 
+#if TOUCHPAD
   byte mstat1;
   byte mstat2;
   byte mxy;
@@ -132,7 +158,8 @@ void loop() {
     }
     Serial.println();
   }
-  
+#endif
+
 
   if (Serial.available()) {
     digitalWrite(led_pin, HIGH);
@@ -173,4 +200,28 @@ void loop() {
     }
     digitalWrite(led_pin, LOW);
   }
+
+  int ldr = analogRead(ldr_pin);
+  ldr_sum += ldr >> 2;
+  ldr_count++;
+  if ( ldr_count > LDR_SIZE ) {
+    ldr = ldr_sum / ldr_count;
+    ldr_count = 0;
+    ldr_sum = 0;
+
+    if ( abs(ldr - last_ldr) > 5 ) {  
+      Serial.print("LDR = ");
+      Serial.println(ldr);
+    }
+    last_ldr = ldr;
+  }
+
+
+  int pir = digitalRead(pir_pin);
+  if ( pir != last_pir) {
+    last_pir = pir;
+    Serial.print("PIR = ");
+    Serial.println(pir);
+  }
+
 }
