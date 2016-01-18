@@ -16,7 +16,7 @@ const int pir_pin = A2;
 PS2 mouse(8, 7); // PS2 synaptics clock, data
 #endif
 
-int mosfet_pwm[] = { 0, 0, 0 }; // current state of mosfet pwm
+int mosfet_pwm[] = { 255, 255, 0 }; // initial and current state of mosfet pwm
 
 void setup() {
   Serial.begin(115200);
@@ -27,7 +27,10 @@ void setup() {
 
   pinMode(buzzer_pin, OUTPUT);
 
-  for(int i=0; i<=2; i++) pinMode(mosfet_pins[i], OUTPUT);
+  for(int i=0; i<=2; i++) {
+    pinMode(mosfet_pins[i], OUTPUT);
+    analogWrite(mosfet_pins[i], mosfet_pwm[i]);
+  }
 
   pinMode(ldr_pin, INPUT);
   pinMode(pir_pin, INPUT);
