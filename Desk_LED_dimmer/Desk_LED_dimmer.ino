@@ -10,6 +10,7 @@ const int ldr_pin = A3; // LDR +5 -- A3 -[10K]- GND
 const int pir_pin = A2;
 
 #define TOUCHPAD 1 // set this to 0 if debugging without touchpad
+#define PIR_TIMEOUT 10 // s
 
 #if TOUCHPAD
 #include <ps2.h>
@@ -108,6 +109,8 @@ static int ldr_sum = 0;
 static int ldr_count = 0;
 
 int last_pir = 0;
+long int pir_millis = millis();
+
 void loop() {
 
 #if TOUCHPAD
@@ -225,6 +228,25 @@ void loop() {
     last_pir = pir;
     Serial.print("PIR = ");
     Serial.println(pir);
+  }
+
+  long int ms = millis();
+  if ( pir == 0 ) {
+    if (pir_millis > 0 && ms - pir_millis > PIR_TIMEOUT * 1000 ) {
+      Serial.println("PIR timeout, fade-out");
+      pir_millis = -1; // mark that we are in timeout
+      for(int i=0; i<=2; i++) {
+        analogWrite(mosfet_pins[i], 0);
+      }
+    }
+  } else {
+    if (pir_millis < 0) {
+      Serial.println("PIR fade-in after timeout");
+      for(int i=0; i<=2; i++) {
+        analogWrite(mosfet_pins[i], mosfet_pwm[i]);
+      }
+    }
+    pir_millis = ms;
   }
 
 }
