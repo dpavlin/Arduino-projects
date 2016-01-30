@@ -64,3 +64,6 @@
 [submodule "libraries/MsTimer2"]
 	path = libraries/MsTimer2
 	url = https://github.com/PaulStoffregen/MsTimer2
+[submodule "libraries/EtherEncLib"]
+	path = libraries/EtherEncLib
+	url = https://github.com/renatoaloi/EtherEncLib
