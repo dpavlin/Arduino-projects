@@ -5,6 +5,13 @@
 
 const int led_pin = 13;
 const int buzzer_pin = 4;
+/* ENC28J60 pins
+SCK D13
+SO  D12
+SI  D11
+CS  D10
+#define ENC28J60_CONTROL_CS                     10 // remap?
+*/
 const int mosfet_pins[] = { 9, 10, 6 }; // PWM pins: 3,5,6,9,10,11
 const int ldr_pin = A3; // LDR +5 -- A3 -[10K]- GND
 const int pir_pin = A2;
