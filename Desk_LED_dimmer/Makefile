@@ -2,6 +2,7 @@
 # apt-get install arduino-mk
 
 #ARDUINO_DIR=/opt/arduino
+ARDUINO_SKETCHBOOK = ../
 
 BOARD_TAG    = pro5v328
 
