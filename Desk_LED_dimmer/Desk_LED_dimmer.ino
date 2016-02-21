@@ -9,6 +9,7 @@ const int mosfet_pins[] = { 9, 10, 6 }; // PWM pins: 3,5,6,9,10,11
 const int ldr_pin = A3; // LDR +5 -- A3 -[10K]- GND
 const int pir_pin = A2;
 
+
 #define TOUCHPAD 1 // set this to 0 if debugging without touchpad
 #define PIR_TIMEOUT 10 // s
 
@@ -17,7 +18,17 @@ const int pir_pin = A2;
 PS2 mouse(8, 7); // PS2 synaptics clock, data
 #endif
 
-int mosfet_pwm[] = { 255, 255, 255 }; // initial and current state of mosfet pwm
+
+int mosfet_pwm[] = { 127, 127, 127 }; // initial and current state of mosfet pwm
+
+void MOSFET_PWM(int i, int pwm) {
+        analogWrite(mosfet_pins[i], pwm);
+	Serial.print("MOSFET=");
+	Serial.print(i);
+	Serial.print(":");
+	Serial.println(pwm);
+}
+
 
 void setup() {
   Serial.begin(115200);
@@ -90,11 +101,10 @@ void mosfet(int nr, int value) {
   int sleep = 1000 / abs(pwm - value);
   int step = pwm < value ? 1 : -1;
   for(int i=pwm; i != value; i += step) {
-    analogWrite(mosfet_pins[nr], i);
-    Serial.println(i);
+    MOSFET_PWM(nr, i);
     delay(sleep);
   }
-  analogWrite(mosfet_pins[nr], value);
+  MOSFET_PWM(nr, value);
   mosfet_pwm[nr] = value;
 }
 
@@ -110,6 +120,7 @@ static int ldr_count = 0;
 
 int last_pir = 0;
 long int pir_millis = millis();
+
 
 void loop() {
 
@@ -156,13 +167,12 @@ void loop() {
       Serial.print("\tpwm = ");
       Serial.print(pwm);
       if ( nr >= 0 && nr <= 2 && pwm >= 0 && pwm <= 255 ) {
-        analogWrite(mosfet_pins[nr], pwm);
-        Serial.print("\tOK");
+        Serial.println("\tOK");
+        MOSFET_PWM(nr, pwm);
       } else {
-        Serial.print("\tIGNORED");
+        Serial.println("\tIGNORED");
       }
     }
-    Serial.println();
   }
 #endif
 
@@ -236,14 +246,14 @@ void loop() {
       Serial.println("PIR timeout, fade-out");
       pir_millis = -1; // mark that we are in timeout
       for(int i=0; i<=2; i++) {
-        analogWrite(mosfet_pins[i], 0);
+        MOSFET_PWM(i, 0);
       }
     }
   } else {
     if (pir_millis < 0) {
       Serial.println("PIR fade-in after timeout");
       for(int i=0; i<=2; i++) {
-        analogWrite(mosfet_pins[i], mosfet_pwm[i]);
+        MOSFET_PWM(i, mosfet_pwm[i]);
       }
     }
     pir_millis = ms;
