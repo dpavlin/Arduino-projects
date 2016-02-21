@@ -169,6 +169,7 @@ void loop() {
       if ( nr >= 0 && nr <= 2 && pwm >= 0 && pwm <= 255 ) {
         Serial.println("\tOK");
         MOSFET_PWM(nr, pwm);
+        mosfet_pwm[nr] = pwm;
       } else {
         Serial.println("\tIGNORED");
       }
