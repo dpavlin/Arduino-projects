@@ -1,17 +1,24 @@
 #!/bin/sh -xe
 
+/opt/vc/bin/tvservice -s
+/opt/vc/bin/tvservice -p
+
+pidof X || X -ac -listen tcp :1 && export DISPLAY=:1
+
 xrandr -q
 
 xset dpms force on
 
-#tail -f /tmp/fade.log | grep = | sed -e 's/\t/\n/g' -e 's/^.*LDR = /0:/' -e 's/^.*PIR = /1:/' -e 's/^.*X=/2:/' -e 's/Y=/3:/' -e 's/Z=/4:/' | grep :
-
-#microcom -p /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A9UHTFJF-if00-port0 | \
-#picocom -b 115200 /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A9UHTFJF-if00-port0 | \
-
 socat - /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A9UHTFJF-if00-port0,nonblock,raw,echo=0 \
 | tee /dev/stderr \
 | grep --line-buffered = \
-| sed -e 's/\t/\n/g' -e 's/^.*LDR = /0:/' -e 's/^.*PIR = /1:/' -e 's/^.*X=/2:/' -e 's/Y=/3:/' -e 's/Z=/4:/' \
+| sed -e 's/\t/\n/g' -e 's/MOSFET=//' -e 's/X=/3:/' -e 's/Y=/4:/' -e 's/Z=/5:/' \
 | grep --line-buffered : \
-| ~/cheali-logview-gnuplot/driveGnuPlots.pl 5 10 10 300 300 300 LDR PIR X Y Z
+| ~/cheali-logview-gnuplot/driveGnuPlots.pl 6 \
+300 300 300 \
+300 300 300 \
+MOSFET_0 MOSFET_1 MOSFET_2, \
+X Y Z \
+
+# leave empty line above
+
