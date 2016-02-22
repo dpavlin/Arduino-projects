@@ -11,6 +11,10 @@ const int pir_pin = A2;
 
 
 #define TOUCHPAD 1 // set this to 0 if debugging without touchpad
+
+int LDR_SIZE = 1;	// 1 number of LDR reading to average
+int LDR_NOISE = 6;	// 6 calibrate LDR noise level 
+
 #define PIR_TIMEOUT 10 // s
 
 #if TOUCHPAD
@@ -19,7 +23,7 @@ PS2 mouse(8, 7); // PS2 synaptics clock, data
 #endif
 
 
-int mosfet_pwm[] = { 127, 127, 127 }; // initial and current state of mosfet pwm
+int mosfet_pwm[] = { 64, 64, 64 }; // initial and current state of mosfet pwm
 
 void MOSFET_PWM(int i, int pwm) {
         analogWrite(mosfet_pins[i], pwm);
@@ -41,10 +45,11 @@ void setup() {
 
   for(int i=0; i<=2; i++) {
     pinMode(mosfet_pins[i], OUTPUT);
-    analogWrite(mosfet_pins[i], mosfet_pwm[i]);
+    analogWrite(mosfet_pins[i], 0);
   }
 
   pinMode(ldr_pin, INPUT);
+
   pinMode(pir_pin, INPUT);
 
 #if TOUCHPAD
@@ -82,7 +87,17 @@ void setup() {
 
 #endif
 
-  Serial.println("Commands: b - beep, qwe/asd/zxc - MOSFETs");
+  Serial.print("Commands: b - beep, qwe/asd/zxc - MOSFETs\nLDR = ");
+  int ldr = analogRead(ldr_pin);
+  Serial.println(ldr);
+
+  for(int i=0; i<=2; i++) {
+    analogWrite(mosfet_pins[i], 16);
+    delay(100);
+    int ldr = analogRead(ldr_pin);
+    Serial.print(ldr);
+    analogWrite(mosfet_pins[i], 0);
+  }
 
   digitalWrite(led_pin, LOW);
 
@@ -113,8 +128,6 @@ unsigned int last_cx = 0;
 unsigned int last_cy = 0;         
 
 int last_ldr = 0;
-// number of LDR reading to average
-#define LDR_SIZE 100
 static int ldr_sum = 0;
 static int ldr_count = 0;
 
@@ -219,18 +232,18 @@ void loop() {
   }
 
   int ldr = analogRead(ldr_pin);
-  ldr_sum += ldr >> 2;
+  ldr_sum += ldr;
   ldr_count++;
   if ( ldr_count > LDR_SIZE ) {
     ldr = ldr_sum / ldr_count;
     ldr_count = 0;
     ldr_sum = 0;
 
-    if ( abs(ldr - last_ldr) > 5 ) {  
+    if ( abs(ldr-last_ldr) > LDR_NOISE ) {  
       Serial.print("LDR = ");
       Serial.println(ldr);
+      last_ldr = ( last_ldr + ldr ) / 2;
     }
-    last_ldr = ldr;
   }
 
 
