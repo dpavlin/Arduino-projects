@@ -88,7 +88,7 @@ void setup() {
 
 #endif
 
-  Serial.print("Commands: b - beep, qwe/asd/zxc - MOSFETs\nLDR = ");
+  Serial.print("Commands: b - beep, qwe/asd/zxc - MOSFETs, hjkl - single step fade, L - LDR, P - PIR\nLDR = ");
   int ldr = analogRead(ldr_pin);
   Serial.println(ldr);
 
@@ -270,6 +270,9 @@ void loop() {
       case 'j': mosfet(vi_nr, (mosfet_pwm[vi_nr]-1+255)%255 ); break;
       case 'k': mosfet(vi_nr, (mosfet_pwm[vi_nr]+1)%255 ); break;
       case 'l': vi_nr = ( vi_nr + 1 ) % 3; Serial.println(vi_nr); break;
+
+      case 'L': Serial.println(ldr); break;
+      case 'P': Serial.println(pir); break;
 
       /*
               m1 = (m1 + 10) % 255;
