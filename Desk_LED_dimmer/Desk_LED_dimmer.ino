@@ -202,6 +202,49 @@ void loop() {
 #endif
 
 
+  int ldr = analogRead(ldr_pin);
+  ldr_sum += ldr;
+  ldr_count++;
+  if ( ldr_count > LDR_SIZE ) {
+    ldr = ldr_sum / ldr_count;
+    ldr_count = 0;
+    ldr_sum = 0;
+
+    if ( abs(ldr-last_ldr) > LDR_NOISE ) {  
+      Serial.print("LDR = ");
+      Serial.println(ldr);
+      last_ldr = ( last_ldr + ldr ) / 2;
+    }
+  }
+
+
+  int pir = digitalRead(pir_pin);
+  if ( pir != last_pir) {
+    last_pir = pir;
+    Serial.print("PIR = ");
+    Serial.println(pir);
+  }
+
+  long int ms = millis();
+  if ( pir == 0 ) {
+    if (pir_millis > 0 && ms - pir_millis > PIR_TIMEOUT * 1000 ) {
+      Serial.println("PIR timeout, fade-out");
+      pir_millis = -1; // mark that we are in timeout
+      for(int i=0; i<=2; i++) {
+        MOSFET_PWM(i, 0);
+      }
+    }
+  } else {
+    if (pir_millis < 0) {
+      Serial.println("PIR fade-in after timeout");
+      for(int i=0; i<=2; i++) {
+        MOSFET_PWM(i, mosfet_pwm[i]);
+      }
+    }
+    pir_millis = ms;
+  }
+
+
   if (Serial.available()) {
     digitalWrite(led_pin, HIGH);
     int in = Serial.read();
@@ -246,48 +289,6 @@ void loop() {
         Serial.println(in);
     }
     digitalWrite(led_pin, LOW);
-  }
-
-  int ldr = analogRead(ldr_pin);
-  ldr_sum += ldr;
-  ldr_count++;
-  if ( ldr_count > LDR_SIZE ) {
-    ldr = ldr_sum / ldr_count;
-    ldr_count = 0;
-    ldr_sum = 0;
-
-    if ( abs(ldr-last_ldr) > LDR_NOISE ) {  
-      Serial.print("LDR = ");
-      Serial.println(ldr);
-      last_ldr = ( last_ldr + ldr ) / 2;
-    }
-  }
-
-
-  int pir = digitalRead(pir_pin);
-  if ( pir != last_pir) {
-    last_pir = pir;
-    Serial.print("PIR = ");
-    Serial.println(pir);
-  }
-
-  long int ms = millis();
-  if ( pir == 0 ) {
-    if (pir_millis > 0 && ms - pir_millis > PIR_TIMEOUT * 1000 ) {
-      Serial.println("PIR timeout, fade-out");
-      pir_millis = -1; // mark that we are in timeout
-      for(int i=0; i<=2; i++) {
-        MOSFET_PWM(i, 0);
-      }
-    }
-  } else {
-    if (pir_millis < 0) {
-      Serial.println("PIR fade-in after timeout");
-      for(int i=0; i<=2; i++) {
-        MOSFET_PWM(i, mosfet_pwm[i]);
-      }
-    }
-    pir_millis = ms;
   }
 
 }
