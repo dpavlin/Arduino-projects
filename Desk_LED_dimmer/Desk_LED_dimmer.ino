@@ -3,6 +3,8 @@
     2016-01-10 Dobrica Pavlinusic <dpavlin@rot13.org>
 */
 
+#include <EEPROM.h>
+
 const int led_pin = 13;
 const int buzzer_pin = 4;
 const int mosfet_pins[] = { 9, 10, 6 }; // PWM pins: 3,5,6,9,10,11
@@ -102,7 +104,9 @@ void setup() {
 
   // recall startup values
   for(int i=0; i<=2; i++) {
-    analogWrite(mosfet_pins[i], mosfet_pwm[i]);
+    int pwm = EEPROM.read(i);
+    mosfet_pwm[i] = pwm;
+    analogWrite(mosfet_pins[i], pwm);
   }
 
   digitalWrite(led_pin, LOW);
@@ -273,6 +277,11 @@ void loop() {
 
       case 'L': Serial.println(ldr); break;
       case 'P': Serial.println(pir); break;
+
+      case 'S':
+        for(int i=0; i<3; i++) EEPROM.write(i, mosfet_pwm[i]);
+        Serial.println("EEPROM store brightness");
+	break;
 
       /*
               m1 = (m1 + 10) % 255;
