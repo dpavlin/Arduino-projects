@@ -21,6 +21,7 @@ int LDR_NOISE = 6;	// 6 calibrate LDR noise level
 #include <ps2.h>
 PS2 mouse(8, 7); // PS2 synaptics clock, data
 #endif
+#define TP_LANDSCAPE 0
 
 
 int mosfet_pwm[] = { 64, 64, 64 }; // initial and current state of mosfet pwm
@@ -172,8 +173,14 @@ void loop() {
     Serial.print("\tZ=");
     Serial.print(mz, DEC);
     if ( cx > 1100 && cy > 800 ) {
+#if TP_LANDSCAPE
       int nr  = ( cx - 1100 ) / (( 5800 - 1100 ) / 3);
       int pwm = ( cy - 800  ) / (( 5000 - 800  ) / 255);
+#else
+      int pwm = ( cx - 1100 ) / (( 5800 - 1100 ) / 255);
+      int nr  = ( cy - 800  ) / (( 5000 - 800  ) / 4);
+      if ( nr > 2 ) nr -= 1;  // 0 [ 1 2 ] 3 -> 0 1 2
+#endif
       pwm -= 1; // allow off
       Serial.print("\tmosfet = ");
       Serial.print(nr);
