@@ -24,7 +24,7 @@ PS2 mouse(8, 7); // PS2 synaptics clock, data
 #define TP_LANDSCAPE 0
 
 
-int mosfet_pwm[] = { 64, 64, 64 }; // initial and current state of mosfet pwm
+int mosfet_pwm[] = { 1, 1, 1 }; // initial and current state of mosfet pwm
 
 void MOSFET_PWM(int i, int pwm) {
         analogWrite(mosfet_pins[i], pwm);
@@ -93,11 +93,16 @@ void setup() {
   Serial.println(ldr);
 
   for(int i=0; i<=2; i++) {
-    analogWrite(mosfet_pins[i], 16);
+    analogWrite(mosfet_pins[i], 1);
     delay(100);
     int ldr = analogRead(ldr_pin);
-    Serial.print(ldr);
+    Serial.println(ldr);
     analogWrite(mosfet_pins[i], 0);
+  }
+
+  // recall startup values
+  for(int i=0; i<=2; i++) {
+    analogWrite(mosfet_pins[i], mosfet_pwm[i]);
   }
 
   digitalWrite(led_pin, LOW);
@@ -110,14 +115,11 @@ void mosfet(int nr, int value) {
     Serial.println("ignored");
     return;
   }
-  Serial.print("MOSFET ");
-  Serial.print(nr);
-  Serial.print(" = ");
-  Serial.println(value);
-  int sleep = 1000 / abs(pwm - value);
+  int sleep = 200 / abs(pwm - value); // changes bigger than 200 (on/off) will be instant
   int step = pwm < value ? 1 : -1;
-  for(int i=pwm; i != value; i += step) {
-    MOSFET_PWM(nr, i);
+  for(int i=pwm + step; i != value; i += step) {
+    //MOSFET_PWM(nr, i);
+    analogWrite(mosfet_pins[nr], i);
     delay(sleep);
   }
   MOSFET_PWM(nr, value);
@@ -134,6 +136,8 @@ static int ldr_count = 0;
 
 int last_pir = 0;
 long int pir_millis = millis();
+
+int vi_nr = 0; // mosfet to fade with vi binadings
 
 
 void loop() {
@@ -217,6 +221,12 @@ void loop() {
       case 'e': mosfet(2, 255); break;
       case 'd': mosfet(2, 127); break;
       case 'c': mosfet(2, 0); break;
+
+      // vi mappings
+      case 'h': vi_nr = ( vi_nr - 1 + 3 ) % 3; Serial.println(vi_nr); break;
+      case 'j': mosfet(vi_nr, (mosfet_pwm[vi_nr]-1+255)%255 ); break;
+      case 'k': mosfet(vi_nr, (mosfet_pwm[vi_nr]+1)%255 ); break;
+      case 'l': vi_nr = ( vi_nr + 1 ) % 3; Serial.println(vi_nr); break;
 
       /*
               m1 = (m1 + 10) % 255;
