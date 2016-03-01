@@ -16,6 +16,7 @@ const int pir_pin = A2;
 
 int LDR_SIZE = 1;	// 1 number of LDR reading to average
 int LDR_NOISE = 6;	// 6 calibrate LDR noise level 
+int LDR_CHANGE = 1;	// do we report LDR changes?
 
 #define PIR_TIMEOUT 10 // s
 
@@ -90,7 +91,7 @@ void setup() {
 
 #endif
 
-  Serial.print("Commands: b - beep, qwe/asd/zxc - MOSFETs, hjkl - single step fade, L - LDR, P - PIR\nLDR = ");
+  Serial.print("Commands: b - beep, qwe/asd/zxc - MOSFETs, hjkl - single step fade, ui/op/[/] - LDR size-+/noise-+/read/changes, P - PIR\nLDR = ");
   int ldr = analogRead(ldr_pin);
   Serial.println(ldr);
 
@@ -214,7 +215,7 @@ void loop() {
     ldr_count = 0;
     ldr_sum = 0;
 
-    if ( abs(ldr-last_ldr) > LDR_NOISE ) {  
+    if ( abs(ldr-last_ldr) > LDR_NOISE && LDR_CHANGE ) {  
       Serial.print("LDR = ");
       Serial.println(ldr);
       last_ldr = ( last_ldr + ldr ) / 2;
@@ -275,7 +276,14 @@ void loop() {
       case 'k': mosfet(vi_nr, (mosfet_pwm[vi_nr]+1)%255 ); break;
       case 'l': vi_nr = ( vi_nr + 1 ) % 3; Serial.println(vi_nr); break;
 
-      case 'L': Serial.println(ldr); break;
+      // LDR
+      case 'u': LDR_SIZE -= 1; Serial.println(LDR_SIZE); break;
+      case 'i': LDR_SIZE += 1; Serial.println(LDR_SIZE); break;
+      case 'o': LDR_NOISE -= 1; Serial.println(LDR_NOISE); break;
+      case 'p': LDR_NOISE += 1; Serial.println(LDR_NOISE); break;
+      case '[': Serial.println(ldr); break;
+      case ']': LDR_CHANGE = ! LDR_CHANGE; break;
+
       case 'P': Serial.println(pir); break;
 
       case 'S':
