@@ -272,8 +272,8 @@ void loop() {
 
       // vi mappings
       case 'h': vi_nr = ( vi_nr - 1 + 3 ) % 3; Serial.println(vi_nr); break;
-      case 'j': mosfet(vi_nr, (mosfet_pwm[vi_nr]-1+255)%255 ); break;
-      case 'k': mosfet(vi_nr, (mosfet_pwm[vi_nr]+1)%255 ); break;
+      case 'j': mosfet(vi_nr, (mosfet_pwm[vi_nr]-1+256)%256 ); break;
+      case 'k': mosfet(vi_nr, (mosfet_pwm[vi_nr]+1)%256 ); break;
       case 'l': vi_nr = ( vi_nr + 1 ) % 3; Serial.println(vi_nr); break;
 
       // LDR
