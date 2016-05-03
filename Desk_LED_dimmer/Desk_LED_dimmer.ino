@@ -37,6 +37,7 @@ void MOSFET_PWM(int i, int pwm) {
 	Serial.println(pwm);
 }
 
+long readVcc();
 
 void setup() {
   Serial.begin(115200);
@@ -112,6 +113,10 @@ void setup() {
 
   digitalWrite(led_pin, LOW);
 
+  float supply = readVcc() / 1000.0;
+  Serial.print("VCC = ");
+  Serial.println(supply);
+
 }
 
 void mosfet(int nr, int value) {
@@ -144,6 +149,7 @@ long int pir_millis = millis();
 
 int vi_nr = 0; // mosfet to fade with vi binadings
 
+float vcc;
 
 void loop() {
 
@@ -262,12 +268,15 @@ void loop() {
         break;
       case 'q': mosfet(0, 255); break;
       case 'a': mosfet(0, 127); break;
+      case 'Z': mosfet(0, 1); break;
       case 'z': mosfet(0, 0); break;
       case 'w': mosfet(1, 255); break;
       case 's': mosfet(1, 127); break;
+      case 'X': mosfet(1, 1); break;
       case 'x': mosfet(1, 0); break;
       case 'e': mosfet(2, 255); break;
       case 'd': mosfet(2, 127); break;
+      case 'C': mosfet(2, 1); break;
       case 'c': mosfet(2, 0); break;
 
       // vi mappings
@@ -304,6 +313,12 @@ void loop() {
               Serial.println(m1);
               break;
       */
+      case 'v':
+        vcc = readVcc() / 1000.0;
+        Serial.print("VCC = ");
+        Serial.println(vcc);
+        break;
+
       default:
         Serial.print("unknown command ");
         Serial.println(in);
@@ -312,3 +327,27 @@ void loop() {
   }
 
 }
+
+// based on https://hackingmajenkoblog.wordpress.com/2016/02/01/making-accurate-adc-readings-on-the-arduino/
+
+long readVcc() {
+  long result;
+  // Read 1.1V reference against AVcc
+#if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+  ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+#elif defined (__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+  ADMUX = _BV(MUX5) | _BV(MUX0);
+#elif defined (__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+  ADMUX = _BV(MUX3) | _BV(MUX2);
+#else
+  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+#endif
+  delay(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Convert
+  while (bit_is_set(ADCSRA, ADSC));
+  result = ADCL;
+  result |= ADCH << 8;
+  result = 1125300L / result; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
+  return result;
+}
+
