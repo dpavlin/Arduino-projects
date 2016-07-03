@@ -11,6 +11,7 @@ int led1 = 9;           // the pin that the LED is attached to
 int led2 = 10;
 int brightness = 0;    // how bright the LED is
 int fadeAmount = 5;    // how many points to fade the LED by
+int count = 0;
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -20,6 +21,8 @@ void setup() {
   analogWriteResolution(12);
   digitalWrite(led1, HIGH);
   digitalWrite(led2, LOW);
+
+  Serial.begin(115200);
 }
 
 // the loop routine runs over and over again forever:
@@ -41,10 +44,15 @@ void loop() {
 
   // change the brightness for next time through the loop:
   brightness = brightness + fadeAmount;
+  if (brightness % 100 == 0 ) {
+    Serial.print( brightness );
+    Serial.print(" ");
+  }
 
   // reverse the direction of the fading at the ends of the fade:
   if (brightness == 0 || brightness == 4095) {
     fadeAmount = -fadeAmount ;
+    Serial.println(count++);
   }
   // wait for 30 milliseconds to see the dimming effect
   delay(1);
