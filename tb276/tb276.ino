@@ -18,6 +18,31 @@ int pos = 0;
 int old_key = -1;
 int key_micros = 0;
 
+int sdi = 0;
+int sdo = 0xAA;
+int mask = 0x01;
+
+int sdi_pin = 10;
+int sdo_pin = 9;
+int sclk_pin = 8;
+
+void sdo_isr(void) {
+	Serial.println("sdo_isr");
+	if (! mask) return;
+	digitalWrite( sdo_pin, sdo & mask ? HIGH : LOW );
+}
+
+void sdi_isr(void) {	
+	Serial.println("sdi_isr");
+	if (! mask) return;
+	if ( digitalRead( sdi_pin ) ) {
+		sdi_pin |= mask;
+	}
+	mask <<= 1;
+	if (! mask) Serial.println(sdi_pin, HEX);
+}
+
+
 // the setup routine runs once when you press reset:
 void setup() {
   // declare pin 9 to be an output:
@@ -30,6 +55,9 @@ void setup() {
 
   Serial.begin(115200);
   Serial.println("setup");
+
+	attachInterrupt(sclk_pin, sdi_isr, RISING);
+	attachInterrupt(sclk_pin, sdo_isr, FALLING);
 }
 
 // the loop routine runs over and over again forever:
