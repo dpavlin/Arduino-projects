@@ -53,6 +53,10 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
+
+/* no need to modify library */
+#define MQTT_MAX_PACKET_SIZE 256
+#define MQTT_KEEPALIVE 120
 #include <PubSubClient.h>
 
 extern "C" uint32_t _SPIFFS_start;
