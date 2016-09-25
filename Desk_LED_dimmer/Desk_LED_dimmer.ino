@@ -31,9 +31,9 @@ int mosfet_pwm[] = { 1, 1, 1 }; // initial and current state of mosfet pwm
 
 void MOSFET_PWM(int i, int pwm) {
         analogWrite(mosfet_pins[i], pwm);
-	Serial.print("MOSFET=");
+	Serial.print("MOSFET:");
 	Serial.print(i);
-	Serial.print(":");
+	Serial.print("=");
 	Serial.println(pwm);
 }
 
@@ -197,9 +197,9 @@ void loop() {
       if ( nr > 2 ) nr -= 1;  // 0 [ 1 2 ] 3 -> 0 1 2
 #endif
       pwm -= 1; // allow off
-      Serial.print("\tmosfet = ");
+      Serial.print("\tmosfet=");
       Serial.print(nr);
-      Serial.print("\tpwm = ");
+      Serial.print("\tpwm=");
       Serial.print(pwm);
       if ( nr >= 0 && nr <= 2 && pwm >= 0 && pwm <= 255 ) {
         Serial.println("\tOK");
@@ -208,6 +208,8 @@ void loop() {
       } else {
         Serial.println("\tIGNORED");
       }
+    } else {
+        Serial.println("\tOUTSIDE TOUCHPAD");
     }
   }
 #endif
