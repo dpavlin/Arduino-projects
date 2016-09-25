@@ -14,7 +14,7 @@ const int pir_pin = A2;
 
 #define TOUCHPAD 1 // set this to 0 if debugging without touchpad
 
-int LDR_SIZE = 1;	// 1 number of LDR reading to average
+int LDR_SIZE = 100;	// 1 number of LDR reading to average
 int LDR_NOISE = 6;	// 6 calibrate LDR noise level 
 int LDR_CHANGE = 1;	// do we report LDR changes?
 
@@ -141,7 +141,7 @@ unsigned int last_cx = 0;
 unsigned int last_cy = 0;         
 
 int last_ldr = 0;
-static int ldr_sum = 0;
+static long int ldr_sum = 0;
 static int ldr_count = 0;
 
 int last_pir = 0;
@@ -221,11 +221,16 @@ void loop() {
     ldr_count = 0;
     ldr_sum = 0;
 
+    Serial.print("LDR = ");
+    Serial.println(ldr);
+
+/*
     if ( abs(ldr-last_ldr) > LDR_NOISE && LDR_CHANGE ) {  
       Serial.print("LDR = ");
       Serial.println(ldr);
       last_ldr = ( last_ldr + ldr ) / 2;
     }
+*/
   }
 
 
