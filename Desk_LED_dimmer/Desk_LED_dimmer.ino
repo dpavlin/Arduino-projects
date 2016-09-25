@@ -305,19 +305,6 @@ void loop() {
         Serial.println("EEPROM store brightness");
 	break;
 
-      /*
-              m1 = (m1 + 10) % 255;
-              analogWrite(mosfet1_pin, m1);
-              Serial.print("MOSFET 1 = ");
-              Serial.println(m1);
-              break;
-            case 'a':
-              m1 = (m1 - 10) % 255;
-              analogWrite(mosfet1_pin, m1);
-              Serial.print("MOSFET 1 = ");
-              Serial.println(m1);
-              break;
-      */
       case 'v':
         vcc = readVcc() / 1000.0;
         Serial.print("VCC = ");
