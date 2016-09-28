@@ -1,0 +1,146 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>fade</title>
+<style type="text/css">
+    #div_g {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 40px;
+      bottom: 10px;
+    }
+</style>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="dygraph-combined-dev.js"></script>
+<script src="mqttws31.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+
+	/*
+by @bordignon on twitter Feb 2014
+Adapted for Dycharts by Malcolm Yeoman
+
+*/
+
+//settings BEGIN
+	var MQTTbroker = 'rpi2';
+	var MQTTport = 9001;
+	var MQTTsubTopic = 'fade/#'; 
+	//var MQTTsubTopic = 'stat/rpi/munin/DS18B20/temperature';
+//settings END
+
+	var topics = {};
+
+	var data = {};
+	var g;
+
+//mqtt broker 
+	var client = new Paho.MQTT.Client(MQTTbroker, MQTTport,
+				"myclientid_" + parseInt(Math.random() * 100, 10));
+	client.onMessageArrived = onMessageArrived;
+	client.onConnectionLost = onConnectionLost;	
+
+//mqtt connecton options including the mqtt broker subscriptions
+	var options = {
+		timeout: 3,
+		onSuccess: function () {
+			console.log("mqtt connected");
+			// Connection succeeded; subscribe to our topics
+			client.subscribe(MQTTsubTopic, {qos: 1});
+		},
+		onFailure: function (message) {
+			console.log("Connection failed, ERROR: " + message.errorMessage);
+			//window.setTimeout(location.reload(),20000); //wait 20seconds before trying to connect again.
+		}
+	};
+
+//can be used to reconnect on connection lost
+	function onConnectionLost(responseObject) {
+		console.log("connection lost: " + responseObject.errorMessage);
+		window.setTimeout(location.reload(),20000); //wait 20seconds before trying to connect again.
+	};
+
+//what is done when a message arrives from the broker
+
+	var selected_topic = '';
+
+	function onMessageArrived(message) {
+		var t = message.destinationName;
+		var s = message.payloadString;
+		console.debug('t=',t,'s=',s);
+
+		if ( isNumber(topics[t]) ) {
+			topics[t]++;
+		} else {
+			topics[t] = 1;
+			data[t] = [];
+			var now = new Date();
+			for (var i = 100; i >= 0; i--) {
+				var x = new Date(now.getTime() - i * 1000);
+				data[t].push([x, null]);
+			}
+			$('select[name=topics]').append('<option>'+t+'</option>');
+			if ( selected_topic == '' ) {
+				selected_topic = t;
+				console.log('selected_topic', selected_topic);
+		
+				g = new Dygraph(document.getElementById("div_g"), data[selected_topic], {
+					drawPoints: true,
+					showRoller: false,
+					drawXAxis: true,
+					//valueRange: [-500, 500],
+					labels: ['Time', 'value' ]
+				});
+			}
+		}
+
+		var x = new Date();  // current time
+
+		data[t].shift();
+		s = message.payloadString.replace( /^\D+/g, ''); //remove any text spaces from the message
+		data[t].push([x,s]);
+
+		if ( t == selected_topic )
+			g.updateOptions( { 'file': data[selected_topic] } );
+
+	};
+
+//check if a real number	
+	function isNumber(n) {
+	  return !isNaN(parseFloat(n)) && isFinite(n);
+	};
+
+//function that is called once the document has loaded
+	function init() {
+	
+		// Connect to MQTT broker
+		client.connect(options);
+
+	};
+	
+
+//settings for the chart
+$(document).ready(function() {
+
+	$('select[name=topics]').on('change', function() {
+		selected_topic = $(this).val();
+		console.log('selected_topic', selected_topic);
+	});
+
+});
+
+</script>
+</head>
+<body onload="init();"><!--Start the javascript ball rolling and connect to the mqtt broker-->
+
+<form>
+<select name="topics">
+</select>
+</form>
+
+<div id="div_g" ></div>
+
+</body>
+</html>
