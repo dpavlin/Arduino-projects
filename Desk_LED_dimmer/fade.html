@@ -69,6 +69,7 @@ Adapted for Dycharts by Malcolm Yeoman
 	function onMessageArrived(message) {
 		var t = message.destinationName;
 		var s = message.payloadString;
+		s = message.payloadString.replace( /^\D+/g, ''); //remove any text spaces from the message
 		console.debug('t=',t,'s=',s);
 
 		if ( isNumber(topics[t]) ) {
@@ -77,10 +78,13 @@ Adapted for Dycharts by Malcolm Yeoman
 			topics[t] = 1;
 			data[t] = [];
 			var now = new Date();
+/*
 			for (var i = 100; i >= 0; i--) {
 				var x = new Date(now.getTime() - i * 1000);
 				data[t].push([x, null]);
 			}
+*/
+			data[t].push([now, s]);
 			$('select[name=topics]').append('<option>'+t+'</option>');
 			if ( selected_topic == '' ) {
 				selected_topic = t;
@@ -98,7 +102,7 @@ Adapted for Dycharts by Malcolm Yeoman
 
 		var x = new Date();  // current time
 
-		data[t].shift();
+		if ( data[t].length >= 100 ) data[t].shift();
 		s = message.payloadString.replace( /^\D+/g, ''); //remove any text spaces from the message
 		data[t].push([x,s]);
 
@@ -127,6 +131,7 @@ $(document).ready(function() {
 	$('select[name=topics]').on('change', function() {
 		selected_topic = $(this).val();
 		console.log('selected_topic', selected_topic);
+		g.updateOptions( { 'file': data[selected_topic] } );
 	});
 
 });
