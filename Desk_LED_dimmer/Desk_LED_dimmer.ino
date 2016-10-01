@@ -38,6 +38,7 @@ void MOSFET_PWM(int i, int pwm) {
 }
 
 long readVcc();
+void serial_vcc();
 
 void setup() {
   Serial.begin(115200);
@@ -113,9 +114,7 @@ void setup() {
 
   digitalWrite(led_pin, LOW);
 
-  float supply = readVcc() / 1000.0;
-  Serial.print("VCC = ");
-  Serial.println(supply);
+  serial_vcc();
 
 }
 
@@ -308,9 +307,7 @@ void loop() {
 	break;
 
       case 'v':
-        vcc = readVcc() / 1000.0;
-        Serial.print("VCC = ");
-        Serial.println(vcc);
+	serial_vcc();
         break;
 
       default:
@@ -345,3 +342,8 @@ long readVcc() {
   return result;
 }
 
+void serial_vcc() {
+  float supply = readVcc() / 1000.0;
+  Serial.print("VCC = ");
+  Serial.println(supply);
+}
