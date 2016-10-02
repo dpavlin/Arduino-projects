@@ -34,6 +34,7 @@ Adapted for Dycharts by Malcolm Yeoman
 	var topics = {};
 
 	var data = {};
+	var last_value = {};
 	var g;
 
 //mqtt broker 
@@ -69,8 +70,8 @@ Adapted for Dycharts by Malcolm Yeoman
 	function onMessageArrived(message) {
 		var t = message.destinationName;
 		var s = message.payloadString;
-		s = message.payloadString.replace( /^\D+/g, ''); //remove any text spaces from the message
-		console.debug('t=',t,'s=',s);
+		s = message.payloadString.replace( /^\D+/g, '').replace( /\D+$/g, ''); //remove any text spaces from the message
+		//console.debug('t=',t,'s=',s, 'payload=',message.payloadString);
 
 		if ( isNumber(topics[t]) ) {
 			topics[t]++;
@@ -103,11 +104,16 @@ Adapted for Dycharts by Malcolm Yeoman
 		var x = new Date();  // current time
 
 		if ( data[t].length >= 100 ) data[t].shift();
-		s = message.payloadString.replace( /^\D+/g, ''); //remove any text spaces from the message
 		data[t].push([x,s]);
 
-		if ( t == selected_topic )
+		if ( t == selected_topic ) {
+			var v = message.payloadString;
+			if ( last_value[selected_topic] != v ) {
+				$('#div_v').text(v);
+				last_value[selected_topic] = v;
+			}
 			g.updateOptions( { 'file': data[selected_topic] } );
+		}
 
 	};
 
@@ -143,6 +149,7 @@ $(document).ready(function() {
 <form>
 <select name="topics">
 </select>
+<span id="div_v">?</span>
 </form>
 
 <div id="div_g" ></div>
