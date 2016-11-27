@@ -71,6 +71,8 @@ Adapted for Dycharts by Malcolm Yeoman
 		var t = message.destinationName;
 		var s = message.payloadString;
 		s = message.payloadString.replace( /^\D+/g, '').replace( /\D+$/g, ''); //remove any text spaces from the message
+		s = s.split(/,/)[0]; // use first value from comma-separated list
+
 		//console.debug('t=',t,'s=',s, 'payload=',message.payloadString);
 
 		if ( isNumber(topics[t]) ) {
