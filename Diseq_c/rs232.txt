@@ -1,0 +1,30 @@
+Popis ulaza:
+
+1. Prijemnik 1 Sat A    (Tx @L,A )
+2. Prijemnik 1 Sat B    (Tx @L,B )
+3. Prijemnik 1 Sat C    (Tx @L,C )
+4. Prijemnik 1 Sat D    (Tx @L,D )
+
+5. Prijemnik 2 Sat A    (Tx @L,A )
+6. Prijemnik 2 Sat B    (Tx @L,B )
+7. Prijemnik 2 Sat C    (Tx @L,C )
+8. Prijemnik 2 Sat D    (Tx @L,D )
+
+9. Master - Slave mod rada
+
+
+Moguće situacije i način signalizacije LED diode:
+
+    1) Niti jedan od 8 ulaza nije aktivan, LED treperi sporo (2 sec. ON, 2. sec. OFF)
+    2) Aktivno više od jednog ulaza po prijemniku (greška Diseq-C dekodera) LED treperi brzo (1/8 sec ON, 1/8 sec. OFF)
+    3) Aktivan jedan ulaz po prijemniku (1-4 i 5-8) LED ne svijetli
+    4) Promjena stanja ulaza bilo kojeg prijemnika, na RS232 portu šalje dva puta za redom odgovarajuću komandu (npr. @L,A ). Pauza između komande je 2 sec. Slanje komande  se signalizira samo jednom odgovarajućim brojem treptaja LED diode (1/4 ON, 1/4 OFF)
+  
+Aktivirani ulaz		Komanda na RS232	Broj treptaja
+1 ili 5			@L,A			1
+2 ili 6			@L,B			2
+3 ili 7			@L,C			3
+4 ili 8			@L,D			4
+
+    5) Ako je ulaz 9. aktivan (Master - Slave mod rada)  uređaj ignorira promjene na "Prijemniku 2"  ( ulazi 5-8 ) sve dok je aktivan "Prijemnik 1" ( ulazi 1-4 ). 
+
