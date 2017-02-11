@@ -1,18 +1,14 @@
 /*
-pins, 2 recorders 4 inputs each 
  */
 
+// debug on serial
 #define DEBUG 1
 
-#define REC_1_A A0
-#define REC_1_B A1
-#define REC_1_C A2
-#define REC_1_D A3
-
-#define REC_2_A A4
-#define REC_2_B A5
-#define REC_2_C A6
-#define REC_2_D A7
+// pins, 2 recorders 4 inputs each 
+int receiver[2][4] = {
+	{ A0, A1, A2, A3 },
+	{ A4, A5, A6, A7 },
+};
 
 #define REC_MASTER 2
 
@@ -23,15 +19,15 @@ void setup(){
 
   pinMode(REC_MASTER, INPUT_PULLUP); // pullup for jumper/button
 
-  pinMode(REC_1_A, INPUT);
-  pinMode(REC_1_B, INPUT);
-  pinMode(REC_1_C, INPUT);
-  pinMode(REC_1_D, INPUT);
+  pinMode(receiver[0][0], INPUT);
+  pinMode(receiver[0][1], INPUT);
+  pinMode(receiver[0][2], INPUT);
+  pinMode(receiver[0][3], INPUT);
 
-  pinMode(REC_2_A, INPUT);
-  pinMode(REC_2_B, INPUT);
-  pinMode(REC_2_C, INPUT);
-  pinMode(REC_2_D, INPUT);
+  pinMode(receiver[1][0], INPUT);
+  pinMode(receiver[1][1], INPUT);
+  pinMode(receiver[1][2], INPUT);
+  pinMode(receiver[1][3], INPUT);
 
   pinMode(LED, OUTPUT);
 
@@ -41,11 +37,11 @@ void setup(){
 #endif
 }
 
-int recorder_inputs( int PinA, int PinB, int PinC, int PinD ) {
-  int StateA = digitalRead( PinA ) == HIGH;
-  int StateB = digitalRead( PinB ) == HIGH;
-  int StateC = digitalRead( PinC ) == HIGH;
-  int StateD = digitalRead( PinD ) == HIGH;
+int receiver_selection( int nr ) {
+  int StateA = digitalRead( receiver[nr][0] ) == HIGH;
+  int StateB = digitalRead( receiver[nr][1] ) == HIGH;
+  int StateC = digitalRead( receiver[nr][2] ) == HIGH;
+  int StateD = digitalRead( receiver[nr][3] ) == HIGH;
 
 #ifdef DEBUG
   Serial.print("<");
@@ -83,60 +79,57 @@ int blink_interval = LED_NO_ACTIVE_INPUTS; // 2 sec on/off no receivers turned o
 
 
 void loop(){
+
+  int nr = 1;  
+
+  while(nr) {
+    int sat = receiver_selection(nr-1);
+
+    #if DEBUG
+    Serial.print(" r");
+    Serial.print(nr);
+    Serial.print("=");
+    Serial.print(sat);
+    Serial.print("|");
+    #endif
   
-  int sat = recorder_inputs( REC_1_A, REC_1_B, REC_1_C, REC_1_D );
-  volatile int try_slave = 1;
-
-again_for_slave:
-
-#if DEBUG
-  Serial.print(" r1 ");
-  Serial.print(sat);
-#endif
-
-  if ( sat == 0 ) { // slow blink
-    blink_interval = LED_NO_ACTIVE_INPUTS;
-  } else if ( sat < 0 ) { // error
-    blink_interval = LED_MULTIPLE_INPUTS;
-  } else {
-
-    if ( digitalRead(REC_MASTER) == HIGH ) {
-      try_slave = 0;
-      Serial.print("M");
-    }
-
-    if ( current_sat != sat ) {
-
-      current_sat = sat;
+    nr++;
+    if (nr > 2) nr = 0;
+  
+    if ( sat == 0 ) { // slow blink
+      blink_interval = LED_NO_ACTIVE_INPUTS;
+    } else if ( sat < 0 ) { // error
+      blink_interval = LED_MULTIPLE_INPUTS;
+    } else {
       blink_interval = LED_OFF;
-
-      for(int repeat=0; repeat<2; repeat++) {
-
-        Serial.print("@L,");
-        Serial.println( char('A' - 1 + sat) );
-
-        for(int i=0; i<sat; i++) {
-          digitalWrite(LED, HIGH);
-          delay(LED_SERIAL);
-          digitalWrite(LED, LOW);
-          delay(LED_SERIAL);
-        }
-        delay( 2000 - sat * LED_SERIAL ); // sleep up to 2s
-	//assert(4 * LED_SERIAL < 2000);
+  
+      if ( digitalRead(REC_MASTER) == HIGH ) {
+        nr = 0; // stop
+        Serial.print("M");
       }
-
+  
+      if ( current_sat != sat ) {
+ 
+        current_sat = sat;
+  
+        for(int repeat=0; repeat<2; repeat++) {
+  
+          Serial.print("@L,");
+          Serial.println( char('A' - 1 + sat) );
+  
+          for(int i=0; i<sat; i++) {
+            digitalWrite(LED, HIGH);
+            delay(LED_SERIAL);
+            digitalWrite(LED, LOW);
+            delay(LED_SERIAL);
+          }
+          delay( 2000 - sat * LED_SERIAL ); // sleep up to 2s
+  	//assert(4 * LED_SERIAL < 2000);
+        }
+      }
     } 
   }
 
-  if ( try_slave == 1 ) {
-    try_slave = 0;
-    sat = recorder_inputs( REC_2_A, REC_2_B, REC_2_C, REC_2_D );
-#if DEBUG
-    Serial.print(" r2 ");
-    Serial.print(sat);
-#endif
-    goto again_for_slave;
-  }
 
 #if DEBUG
   Serial.print(" sat=");
