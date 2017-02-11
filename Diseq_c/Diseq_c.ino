@@ -52,6 +52,10 @@ int receiver_selection( int nr ) {
   Serial.print(">");
 #endif
 
+  if ( StateA + StateB + StateC + StateD == 0 ) { // no inputs active
+    return 0;
+  }
+
   if ( StateA + StateB + StateC + StateD != 1 ) { // only one active at a time
     return -1; // error
   }
@@ -105,7 +109,9 @@ void loop(){
   
       if ( digitalRead(REC_MASTER) == HIGH ) {
         nr = 0; // stop
+        #if DEBUG
         Serial.print("M");
+        #endif
       }
   
       if ( current_sat != sat ) {
