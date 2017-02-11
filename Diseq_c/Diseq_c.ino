@@ -4,6 +4,9 @@
 // debug on serial
 #define DEBUG 1
 
+// serial commands for loop-back test
+#define TEST 1
+
 // pins, 2 recorders 4 inputs each 
 int receiver[2][4] = {
 	{ A0, A1, A2, A3 },
@@ -13,6 +16,11 @@ int receiver[2][4] = {
 #define REC_MASTER 2
 
 #define LED 13
+
+//                  rec1     rec2     master
+int test_pins[] = { 2,3,4,5, 6,7,8,9, 1};
+int test_out[]  = { 1,0,0,0, 0,1,0,0, 1};
+int nr_test_pins = sizeof(test_pins)/sizeof(int);
 
 void setup(){
   Serial.begin(9600); // FIXME check speed
@@ -34,6 +42,13 @@ void setup(){
 #if DEBUG
   Serial.print("boot master=");
   Serial.println(digitalRead(REC_MASTER) == HIGH );
+#endif
+
+#if TEST
+  for(int i=0;i<nr_test_pins;i++) {
+    pinMode(test_pins[i], OUTPUT);
+    digitalWrite(test_pins[i], test_out[i]);
+  }
 #endif
 }
 
@@ -80,7 +95,6 @@ int receiver_selection( int nr ) {
 
 int current_sat = 0;
 int blink_interval = LED_NO_ACTIVE_INPUTS; // 2 sec on/off no receivers turned on
-
 
 void loop(){
 
@@ -130,7 +144,7 @@ void loop(){
             delay(LED_SERIAL);
           }
           delay( 2000 - sat * LED_SERIAL ); // sleep up to 2s
-  	//assert(4 * LED_SERIAL < 2000);
+    //assert(4 * LED_SERIAL < 2000);
         }
       }
     } 
@@ -155,7 +169,31 @@ void loop(){
   } else {
     digitalWrite(LED, LOW);
   }
-}
 
+  #if TEST
+  while ( Serial.available() ) {
+    int serial = Serial.read();
+    Serial.print(serial, HEX);
+    if ( serial >= '1' && serial <= ( '1' + nr_test_pins ) ) {
+      int nr = serial - '1';
+      Serial.print(" toggle pin ");
+      test_out[nr] = ! test_out[nr];
+      int pin = test_pins[nr];
+      Serial.print(pin);
+      Serial.print("=");
+      int out = test_out[nr];
+      Serial.print(out);
+      digitalWrite( pin, out );
+
+    }
+    Serial.print(" <");
+    for(int i=0;i<nr_test_pins;i++) {
+      if ( i == 4 || i == 8 ) Serial.print(" ");
+      Serial.print(test_out[i]);
+    }
+    Serial.println(">");
+  }
+  #endif
+}
 
 
