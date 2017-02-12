@@ -17,7 +17,7 @@ int receiver[2][4] = {
 
 #define LED 13
 
-//                  rec1     rec2     master
+//                  rec1        rec2     master
 int test_pins[] = { 12,11,10,9, 8,7,6,5, 4 };
 int test_out[]  = {  0, 0, 0,0, 0,0,0,0, 1};
 int nr_test_pins = sizeof(test_pins)/sizeof(int);
@@ -49,39 +49,37 @@ void setup(){
 }
 
 int receiver_selection( int nr ) {
-  int StateA = digitalRead( receiver[nr][0] ) == HIGH;
-  int StateB = digitalRead( receiver[nr][1] ) == HIGH;
-  int StateC = digitalRead( receiver[nr][2] ) == HIGH;
-  int StateD = digitalRead( receiver[nr][3] ) == HIGH;
 
-#ifdef DEBUG
+  #ifdef DEBUG
   Serial.print("<");
-  Serial.print(StateA);
-  Serial.print(StateB);
-  Serial.print(StateC);
-  Serial.print(StateD);
-  Serial.print(">");
-#endif
+  #endif
 
-  if ( StateA + StateB + StateC + StateD == 0 ) { // no inputs active
+  int active = 0;
+  int selected = -1;
+  for(int i=0; i<4; i++) {
+    int a = analogRead( receiver[nr][i] );
+    int on_off = a > 512 ? 1 : 0;
+    active += on_off;
+    if ( on_off ) selected = i+1;
+
+    //Serial.print(a);
+    //Serial.print("~");
+    Serial.print(on_off);
+    //Serial.print(" ");
+  }
+
+  Serial.print(">");
+  Serial.print(selected);
+
+  if ( active == 0 ) { // no inputs active
     return 0;
   }
 
-  if ( StateA + StateB + StateC + StateD != 1 ) { // only one active at a time
+  if ( active != 1 ) { // only one active at a time
     return -1; // error
   }
 
-  if ( StateA ) {
-    return 1;
-  } else if ( StateB ) {
-    return 2;
-  } else if ( StateC ) {
-    return 3;
-  } else if ( StateD ) {
-    return 4;
-  }
-
-  return 0; // receiver off
+  return selected;
 }
 
 #define LED_NO_ACTIVE_INPUTS 2000
@@ -118,7 +116,26 @@ void loop(){
     #endif
 
     int prefer_master = 0;
-    if ( digitalRead(REC_MASTER) == HIGH ) prefer_master = 1;
+    if ( digitalRead(REC_MASTER) == HIGH ) {
+      prefer_master = 1;
+    } else {
+        if ( last_sat != sat ) {
+          Serial.print("C");
+          last_changed_nr = current_nr;
+          nr=0;
+        } else {
+          Serial.print("=");
+          nr++;
+          continue;
+        }
+
+        if ( last_changed_nr != current_nr ) {
+          sat = current_sat; // ignore, last not changed
+          Serial.print("I");
+        }
+
+
+    }
  
     if ( sat == 0 ) { // slow blink
       blink_interval = LED_NO_ACTIVE_INPUTS;

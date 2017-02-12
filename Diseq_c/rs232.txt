@@ -25,7 +25,9 @@ T: 12 56 1256 1256
 T: 1 5
 
     4) Promjena stanja ulaza bilo kojeg prijemnika, na RS232 portu šalje dva puta za redom odgovarajuću komandu (npr. @L,A ). Pauza između komande je 2 sec. Slanje komande  se signalizira samo jednom odgovarajućim brojem treptaja LED diode (1/4 ON, 1/4 OFF)
-  
+
+T: 91 6 12 67
+ 
 Aktivirani ulaz		Komanda na RS232	Broj treptaja
 1 ili 5			@L,A			1
 2 ili 6			@L,B			2
@@ -34,3 +36,4 @@ Aktivirani ulaz		Komanda na RS232	Broj treptaja
 
     5) Ako je ulaz 9. aktivan (Master - Slave mod rada)  uređaj ignorira promjene na "Prijemniku 2"  ( ulazi 5-8 ) sve dok je aktivan "Prijemnik 1" ( ulazi 1-4 ). 
 
+T: 91 
