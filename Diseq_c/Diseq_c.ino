@@ -7,7 +7,7 @@
 // serial commands for loop-back test
 #define TEST 1
 
-// pins, 2 recorders 4 inputs each 
+// pins, 2 receivers 4 inputs each 
 int receiver[2][4] = {
   { A0, A1, A2, A3 },
   { A4, A5, A6, A7 },
@@ -21,6 +21,10 @@ int receiver[2][4] = {
 int test_pins[] = { 12,11,10,9, 8,7,6,5, 4 };
 int test_out[]  = {  0, 0, 0,0, 0,0,0,0, 1};
 int nr_test_pins = sizeof(test_pins)/sizeof(int);
+
+int master_enabled() {
+  return digitalRead(REC_MASTER) == HIGH ? 1 : 0;
+}
 
 void setup(){
   Serial.begin(9600); // FIXME check speed
@@ -37,7 +41,7 @@ void setup(){
 
 #if DEBUG
   Serial.print("boot master=");
-  Serial.println(digitalRead(REC_MASTER) == HIGH );
+  Serial.println(master_enabled());
 #endif
 
 #if TEST
@@ -57,7 +61,10 @@ int receiver_selection( int nr ) {
   Serial.print("|<");
   #endif
 
-  if ( nr == 0 ) len = 0;
+  if ( nr == 0 ) {
+    len = 0;
+    if ( ! master_enabled() ) restore[len++] = '9';
+  }
 
   int active = 0;
   int selected = -1;
@@ -126,25 +133,31 @@ void loop(){
     Serial.print(last_sat);
     #endif
 
-    int prefer_master = 0;
-    if ( digitalRead(REC_MASTER) == HIGH ) {
-      prefer_master = 1;
-    } else {
-        if ( last_sat != sat ) {
-          Serial.print("C");
-          last_changed_nr = current_nr;
-          nr=0; // stop
-        } else {
-          Serial.print("=");
-          nr++; // next
-          continue;
-        }
+    int prefer_master = master_enabled();
+    if ( ! prefer_master ) {
 
-        if ( last_changed_nr != current_nr ) {
-          sat = current_sat; // ignore, last not changed
-          Serial.print("I");
-        }
+      if ( last_sat != sat ) {
 
+        Serial.print("C");
+        last_changed_nr = current_nr;
+        if ( sat == 0 ) {
+          Serial.print("O");
+          sat = receiver_selection( (i+1)%2 ); // check other receiver
+        }
+        nr=0; // stop
+
+      } else {
+
+        Serial.print("=");
+        nr++; // next
+        continue;
+
+      }
+
+      if ( last_changed_nr != current_nr ) {
+        sat = current_sat; // ignore, last not changed
+        Serial.print("I");
+      }
 
     }
  
@@ -161,8 +174,9 @@ void loop(){
         #if DEBUG
         Serial.print("[M]");
         #endif
-        if ( nr == 1 ) { // need to check 2nd recorder error
+        if ( nr == 1 ) { // need to check 2nd receiver error and report it
           int error = receiver_selection(i + 1);
+          Serial.print(" E?");
           Serial.print(error);
           if ( error == -1 ) blink_interval = LED_MULTIPLE_INPUTS;
         }
@@ -261,4 +275,4 @@ void loop(){
   #endif
 }
 
-
+// vim: tabstop=2 shiftwidth=2 expandtab
