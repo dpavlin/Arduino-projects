@@ -9,8 +9,8 @@
 
 // pins, 2 recorders 4 inputs each 
 int receiver[2][4] = {
-	{ A0, A1, A2, A3 },
-	{ A4, A5, A6, A7 },
+  { A0, A1, A2, A3 },
+  { A4, A5, A6, A7 },
 };
 
 #define REC_MASTER 2
@@ -18,8 +18,8 @@ int receiver[2][4] = {
 #define LED 13
 
 //                  rec1     rec2     master
-int test_pins[] = { 2,3,4,5, 6,7,8,9, 1};
-int test_out[]  = { 1,0,0,0, 0,1,0,0, 1};
+int test_pins[] = { 12,11,10,9, 8,7,6,5, 4 };
+int test_out[]  = {  0, 0, 0,0, 0,0,0,0, 1};
 int nr_test_pins = sizeof(test_pins)/sizeof(int);
 
 void setup(){
@@ -27,15 +27,11 @@ void setup(){
 
   pinMode(REC_MASTER, INPUT_PULLUP); // pullup for jumper/button
 
-  pinMode(receiver[0][0], INPUT);
-  pinMode(receiver[0][1], INPUT);
-  pinMode(receiver[0][2], INPUT);
-  pinMode(receiver[0][3], INPUT);
-
-  pinMode(receiver[1][0], INPUT);
-  pinMode(receiver[1][1], INPUT);
-  pinMode(receiver[1][2], INPUT);
-  pinMode(receiver[1][3], INPUT);
+  for(int nr=0; nr<2; nr++) {
+    for(int input=0; input<4; input++) {
+      pinMode(receiver[nr][input], INPUT);
+    }
+  }
 
   pinMode(LED, OUTPUT);
 
@@ -90,52 +86,81 @@ int receiver_selection( int nr ) {
 
 #define LED_NO_ACTIVE_INPUTS 2000
 #define LED_MULTIPLE_INPUTS  125
-#define LED_SERIAL           250
+#define LED_SERIAL           200 // < 250
 #define LED_OFF              0
 
 int current_sat = 0;
 int blink_interval = LED_NO_ACTIVE_INPUTS; // 2 sec on/off no receivers turned on
+int last_changed_nr = -1;
+int last_receiver_selection[2] = { -1, -1 };
 
 void loop(){
 
-  int nr = 1;  
+  int nr = 1;
 
-  while(nr) {
-    int sat = receiver_selection(nr-1);
+  while(nr && nr <= 2) {
+    int i = nr - 1;
+
+    int current_nr = nr;
+
+    int sat = receiver_selection(i);
+    int last_sat = last_receiver_selection[i];
+    last_receiver_selection[i] = sat;
 
     #if DEBUG
     Serial.print(" r");
     Serial.print(nr);
     Serial.print("=");
     Serial.print(sat);
+    Serial.print(" last:");
+    Serial.print(last_sat);
     Serial.print("|");
     #endif
-  
-    nr++;
-    if (nr > 2) nr = 0;
-  
+
+    int prefer_master = 0;
+    if ( digitalRead(REC_MASTER) == HIGH ) prefer_master = 1;
+ 
     if ( sat == 0 ) { // slow blink
       blink_interval = LED_NO_ACTIVE_INPUTS;
+      nr++; // next
     } else if ( sat < 0 ) { // error
       blink_interval = LED_MULTIPLE_INPUTS;
+      nr = 0;
     } else {
       blink_interval = LED_OFF;
   
-      if ( digitalRead(REC_MASTER) == HIGH ) {
+      if ( prefer_master ) {
         nr = 0; // stop
         #if DEBUG
-        Serial.print("M");
+        Serial.print(" M ");
         #endif
+      } else {
+        if ( last_sat != sat ) {
+          Serial.print(" C ");
+          last_changed_nr = current_nr;
+          nr=0;
+        } else {
+          Serial.print(" S ");
+          nr++;
+        }
+
+        if ( last_changed_nr != current_nr ) {
+          sat = current_sat; // ignore, last not changed
+          Serial.print(" I ");
+        }
+  
       }
-  
+
       if ( current_sat != sat ) {
- 
+
+  last_changed_nr = current_nr;
         current_sat = sat;
-  
+        nr = 0; // stop
+
         for(int repeat=0; repeat<2; repeat++) {
   
           Serial.print("@L,");
-          Serial.println( char('A' - 1 + sat) );
+          Serial.println( char('A' + sat - 1) );
   
           for(int i=0; i<sat; i++) {
             digitalWrite(LED, HIGH);
@@ -143,20 +168,25 @@ void loop(){
             digitalWrite(LED, LOW);
             delay(LED_SERIAL);
           }
-          delay( 2000 - sat * LED_SERIAL ); // sleep up to 2s
+          delay( ( 5 - sat ) * LED_SERIAL * 2 ); // sleep up to 2s
     //assert(4 * LED_SERIAL < 2000);
         }
+
       }
-    } 
+
+    } // while
+
   }
 
 
-#if DEBUG
+  #if DEBUG
   Serial.print(" sat=");
   Serial.print(current_sat);
+  Serial.print(" from:");
+  Serial.print(last_changed_nr);
   Serial.print(" blink=");
   Serial.println(blink_interval);
-#endif
+  #endif
 
   // handle next led blink event in time
   int m = millis() % ( blink_interval * 2 );
