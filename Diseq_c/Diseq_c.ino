@@ -54,7 +54,7 @@ char len = 0;
 int receiver_selection( int nr ) {
 
   #ifdef DEBUG
-  Serial.print("<");
+  Serial.print("|<");
   #endif
 
   if ( nr == 0 ) len = 0;
@@ -79,8 +79,6 @@ int receiver_selection( int nr ) {
   restore[len] = 0;
 
   Serial.print(">");
-  Serial.print(" selected:");
-  Serial.print(selected);
 
   if ( active == 0 ) { // no inputs active
     return 0;
@@ -89,6 +87,9 @@ int receiver_selection( int nr ) {
   if ( active != 1 ) { // only one active at a time
     return -1; // error
   }
+
+  Serial.print(" selected=");
+  Serial.print(selected);
 
   return selected;
 }
@@ -123,7 +124,6 @@ void loop(){
     Serial.print(sat);
     Serial.print(" last:");
     Serial.print(last_sat);
-    Serial.print("|");
     #endif
 
     int prefer_master = 0;
@@ -186,7 +186,7 @@ void loop(){
 
       if ( current_sat != sat ) {
 
-  last_changed_nr = current_nr;
+        last_changed_nr = current_nr;
         current_sat = sat;
         nr = 0; // stop
 
@@ -213,7 +213,7 @@ void loop(){
 
 
   #if DEBUG
-  Serial.print(" sat=");
+  Serial.print("| sat=");
   Serial.print(current_sat);
   Serial.print(" from:");
   Serial.print(last_changed_nr);
