@@ -106,7 +106,7 @@ void loop(){
     last_receiver_selection[i] = sat;
 
     #if DEBUG
-    Serial.print(" r");
+    Serial.print(" nr:");
     Serial.print(nr);
     Serial.print("=");
     Serial.print(sat);
@@ -122,10 +122,10 @@ void loop(){
         if ( last_sat != sat ) {
           Serial.print("C");
           last_changed_nr = current_nr;
-          nr=0;
+          nr=0; // stop
         } else {
           Serial.print("=");
-          nr++;
+          nr++; // next
           continue;
         }
 
@@ -147,23 +147,28 @@ void loop(){
       blink_interval = LED_OFF;
   
       if ( prefer_master ) {
-        nr = 0; // stop
         #if DEBUG
-        Serial.print(" M ");
+        Serial.print("[M]");
         #endif
+        if ( nr == 1 ) { // need to check 2nd recorder error
+          int error = receiver_selection(i + 1);
+          Serial.print(error);
+          if ( error == -1 ) blink_interval = LED_MULTIPLE_INPUTS;
+        }
+        nr = 0; // stop
       } else {
         if ( last_sat != sat ) {
-          Serial.print(" C ");
+          Serial.print("[C]");
           last_changed_nr = current_nr;
           nr=0;
         } else {
-          Serial.print(" S ");
+          Serial.print("[S]");
           nr++;
         }
 
         if ( last_changed_nr != current_nr ) {
           sat = current_sat; // ignore, last not changed
-          Serial.print(" I ");
+          Serial.print("[I]");
         }
   
       }
