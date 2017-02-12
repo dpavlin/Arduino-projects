@@ -48,27 +48,38 @@ void setup(){
 #endif
 }
 
+char restore[10] = "";
+char len = 0;
+
 int receiver_selection( int nr ) {
 
   #ifdef DEBUG
   Serial.print("<");
   #endif
 
+  if ( nr == 0 ) len = 0;
+
   int active = 0;
   int selected = -1;
+
   for(int i=0; i<4; i++) {
     int a = analogRead( receiver[nr][i] );
     int on_off = a > 512 ? 1 : 0;
     active += on_off;
-    if ( on_off ) selected = i+1;
+    if ( on_off ) {
+      selected = i+1;
+      restore[len++] = char('1' + (nr * 4) + i);
+    }
 
     //Serial.print(a);
     //Serial.print("~");
     Serial.print(on_off);
     //Serial.print(" ");
   }
+  restore[len] = 0;
 
   Serial.print(">");
+  Serial.print(" selected:");
   Serial.print(selected);
 
   if ( active == 0 ) { // no inputs active
@@ -206,6 +217,8 @@ void loop(){
   Serial.print(current_sat);
   Serial.print(" from:");
   Serial.print(last_changed_nr);
+  Serial.print(" restore>");
+  Serial.print(restore);
   Serial.print(" blink=");
   Serial.println(blink_interval);
   #endif
