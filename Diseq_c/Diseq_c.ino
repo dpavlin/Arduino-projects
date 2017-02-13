@@ -7,20 +7,24 @@
 // serial commands for loop-back test
 #define TEST 1
 
-// pins, 2 receivers 4 inputs each 
+// pins, 2 receivers 4 satelites signals from Diseqc for each 
 int receiver[2][4] = {
   { A0, A1, A2, A3 },
   { A4, A5, A6, A7 },
 };
 
+// pin for master disable if shorted to ground (GND is next to D2, so jumpers nicely)
 #define REC_MASTER 2
 
+// normal arduino LED on D13
 #define LED 13
 
 //                  rec1        rec2     master
+// keys in serial:   1  2  3 4  5 6 7 8  9
 int test_pins[] = { 12,11,10,9, 8,7,6,5, 4 };
 int test_out[]  = {  0, 0, 0,0, 0,0,0,0, 1};
 int nr_test_pins = sizeof(test_pins)/sizeof(int);
+// loop test pins to receiver pins above for testing
 
 int master_enabled() {
   return digitalRead(REC_MASTER) == HIGH ? 1 : 0;
@@ -55,7 +59,7 @@ void setup(){
 char restore[10] = "";
 char len = 0;
 
-int receiver_selection( int nr ) {
+int receiver_satelite( int nr ) {
 
   #ifdef DEBUG
   Serial.print("|<");
@@ -109,7 +113,7 @@ int receiver_selection( int nr ) {
 int current_sat = 0;
 int blink_interval = LED_NO_ACTIVE_INPUTS; // 2 sec on/off no receivers turned on
 int last_changed_nr = -1;
-int last_receiver_selection[2] = { -1, -1 };
+int last_receiver_satelite[2] = { -1, -1 };
 
 void loop(){
 
@@ -120,9 +124,9 @@ void loop(){
 
     int current_nr = nr;
 
-    int sat = receiver_selection(i);
-    int last_sat = last_receiver_selection[i];
-    last_receiver_selection[i] = sat;
+    int sat = receiver_satelite(i);
+    int last_sat = last_receiver_satelite[i];
+    last_receiver_satelite[i] = sat;
 
     #if DEBUG
     Serial.print(" nr:");
@@ -141,8 +145,8 @@ void loop(){
         Serial.print("C");
         last_changed_nr = current_nr;
         if ( sat == 0 ) {
-          Serial.print("O");
-          sat = receiver_selection( (i+1)%2 ); // check other receiver
+          Serial.print("off");
+          sat = receiver_satelite( (i+1)%2 ); // check other receiver
         }
         nr=0; // stop
 
@@ -175,7 +179,7 @@ void loop(){
         Serial.print("[M]");
         #endif
         if ( nr == 1 ) { // need to check 2nd receiver error and report it
-          int error = receiver_selection(i + 1);
+          int error = receiver_satelite(i + 1);
           Serial.print(" E?");
           Serial.print(error);
           if ( error == -1 ) blink_interval = LED_MULTIPLE_INPUTS;
