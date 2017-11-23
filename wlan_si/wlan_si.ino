@@ -9,23 +9,10 @@ int pir = 6; // PIR on d6
 // hardware based on https://dev.wlan-si.net/wiki/Telemetry/sensgw
 // original software https://github.com/SloMusti/sensgw
 
-float runningAverage(float M) {
-  #define LM_SIZE 100
-  static float LM[LM_SIZE];      // LastMeasurements
-  static byte index = 0;
-  static float sum = 0;
-  static byte count = 0;
+#include "RunningAverage.h"
 
-  // keep sum updated to improve speed.
-  sum -= LM[index];
-  LM[index] = M;
-  sum += LM[index];
-  index++;
-  index = index % LM_SIZE;
-  if (count < LM_SIZE) count++;
-
-  return sum / count;
-}
+RunningAverage pressureKPA_avg(100);
+RunningAverage temperatureC_avg(100);
 
 void setup(void) 
 {
@@ -48,10 +35,12 @@ void loop(void)
   float pressureKPA = 0, temperatureC = 0;    
 
   mpl115a2.getPT(&pressureKPA,&temperatureC);
+  pressureKPA_avg.addValue(pressureKPA);
+  temperatureC_avg.addValue(temperatureC);
 
   if ( count++ % 10 == 0 ) {
-  Serial.print("Pressure="); Serial.print(runningAverage(pressureKPA), 4); Serial.print(" kPa ");
-  Serial.print("Temp="); Serial.print(temperatureC, 1); Serial.print(" C");
+  Serial.print("Pressure="); Serial.print(pressureKPA_avg.getAverage(), 4); Serial.print(" kPa ");
+  Serial.print("Temp="); Serial.print(temperatureC_avg.getAverage(), 2); Serial.print(" C");
 
   Serial.print(" PIR="); Serial.print( digitalRead(pir) );
 
@@ -59,8 +48,6 @@ void loop(void)
 
   Serial.println();
 
-  } else {
-	runningAverage(pressureKPA);
   }
 
   digitalWrite(led, LOW);
