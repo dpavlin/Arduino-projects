@@ -76,6 +76,11 @@ void send_315(char *code) {
 #include "DHT.h"
 DHT dht;
 
+#include "RunningAverage.h"
+
+RunningAverage temp_avg(20);
+RunningAverage hum_avg(20);
+
 // setup
 
 void help() {
@@ -94,13 +99,28 @@ void setup() {
   // DHT22
   dht.setup(8);
 
+    temp_avg.addValue( dht.getTemperature() );
+    hum_avg.addValue( dht.getHumidity() );
+
 }
 
 int serial_pos = 0;
 char serial_data[2]; // socket (0-9), state (0-1)
 char binary_data[32];
 
+unsigned long time = millis();
+
 void loop() {
+  if ( millis() - time > 2000 ) {
+	float t = dht.getTemperature();
+    if ( dht.getStatus() == 0 )
+      temp_avg.addValue( t );
+	float h = dht.getHumidity();
+    if ( dht.getStatus() == 0 )
+      hum_avg.addValue( h );
+    time = millis();
+  }
+
   if (mySwitch.available()) {
     Serial.print(mySwitch.getReceivedBitlength());
     Serial.print(" bits ");
@@ -147,11 +167,9 @@ void loop() {
      // DHT22
      if (input == 'd') {
        Serial.print("temperature=");
-       Serial.print(dht.getTemperature());
+       Serial.print(temp_avg.getAverage());
        Serial.print(" humidity=");
-       Serial.print(dht.getHumidity());
-       Serial.print(" status=");
-       Serial.println(dht.getStatusString());
+       Serial.println(hum_avg.getAverage());
      }
 
      if ( input >= 0x30 && input <= 0x39 && serial_pos < 2 ) {
