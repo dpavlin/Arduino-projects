@@ -1,4 +1,6 @@
 BOARD_TAG=pro328
+ARDUINO_SKETCHBOOK = ../
+
 
 include /usr/share/arduino/Arduino.mk
 
