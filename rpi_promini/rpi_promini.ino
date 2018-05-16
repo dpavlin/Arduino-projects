@@ -78,8 +78,8 @@ DHT dht;
 
 #include "RunningAverage.h"
 
-RunningAverage temp_avg(20);
-RunningAverage hum_avg(20);
+RunningAverage temp_avg(10);
+RunningAverage hum_avg(10);
 
 // setup
 
