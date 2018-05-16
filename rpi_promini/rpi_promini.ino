@@ -11,7 +11,7 @@
 
            2    433Mhz receive
 //           3    433Mhz outdoor temperature sensor receiver # DISABLED
-           8    DHT22
+           8    DHT22 (VCC from arduino VCC)
            10   433Mhz send
            11   DS18B20
            12   315Mhz send
