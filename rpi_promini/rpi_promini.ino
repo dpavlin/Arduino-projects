@@ -107,17 +107,20 @@ void setup() {
 int serial_pos = 0;
 char serial_data[2]; // socket (0-9), state (0-1)
 char binary_data[32];
+int dht22_errors = 0;
 
 unsigned long time = millis();
 
 void loop() {
   if ( millis() - time > 2000 ) {
-	float t = dht.getTemperature();
+    float t = dht.getTemperature();
     if ( dht.getStatus() == 0 )
       temp_avg.addValue( t );
-	float h = dht.getHumidity();
+    else dht22_errors++;
+    float h = dht.getHumidity();
     if ( dht.getStatus() == 0 )
       hum_avg.addValue( h );
+    else dht22_errors++;
     time = millis();
   }
 
@@ -169,7 +172,9 @@ void loop() {
        Serial.print("temperature=");
        Serial.print(temp_avg.getAverage());
        Serial.print(" humidity=");
-       Serial.println(hum_avg.getAverage());
+       Serial.print(hum_avg.getAverage());
+       Serial.print(" errors=");
+       Serial.println(dht22_errors);
      }
 
      if ( input >= 0x30 && input <= 0x39 && serial_pos < 2 ) {
