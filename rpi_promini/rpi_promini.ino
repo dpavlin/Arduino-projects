@@ -5,7 +5,7 @@
   RPI pin  Arduino
   RXD      TXD
   TXD      RXD
-  GPIO6    RST
+  BCM25    RST
   GND      GND
   +5V      RAW
 
