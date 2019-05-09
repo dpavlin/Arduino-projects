@@ -107,7 +107,7 @@ void setup() {
 int serial_pos = 0;
 char serial_data[2]; // socket (0-9), state (0-1)
 char binary_data[32];
-int dht22_errors = 0;
+unsigned int dht22_errors = 0;
 
 unsigned long time = millis();
 
