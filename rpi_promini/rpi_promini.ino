@@ -114,11 +114,13 @@ unsigned long time = millis();
 void loop() {
   if ( millis() - time > 2000 ) {
     float t = dht.getTemperature();
-    if ( dht.getStatus() == 0 )
+    float delta_t = abs(t - temp_avg.getAverage());
+    if ( dht.getStatus() == 0 && delta_t < 10 )
       temp_avg.addValue( t );
     else dht22_errors++;
     float h = dht.getHumidity();
-    if ( dht.getStatus() == 0 )
+    float delta_h = abs(h - hum_avg.getAverage());
+    if ( dht.getStatus() == 0 && delta_h < 10 )
       hum_avg.addValue( h );
     else dht22_errors++;
     time = millis();
