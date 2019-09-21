@@ -115,7 +115,7 @@ void loop() {
   if ( millis() - time > 2000 ) {
     float t = dht.getTemperature();
     float delta_t = abs(t - temp_avg.getAverage());
-    if ( dht.getStatus() == 0 && delta_t < 10 )
+    if ( dht.getStatus() == 0 && delta_t < 5 )
       temp_avg.addValue( t );
     else dht22_errors++;
     float h = dht.getHumidity();
