@@ -1,6 +1,7 @@
 /**
  * Example for using GP2Y1010AU0F Dust Sensor library
  * Created by Mickey Chan
+ * library from https://github.com/mickey9801/GP2Y1010AU0F
  */
 
 #include <GP2Y1010AU0F.h>
