@@ -41,8 +41,9 @@ void dac_decode(char *a, uint8_t v)
 }
 
 
-void dac_read(char *a)
+int dac_read(char *a)
 {
+  int ret = 0;
   uint32_t probeword, checkword, difference;
   // static uint8_t counter = 0; // moving bit for detection state
   uint32_t i;
@@ -75,4 +76,6 @@ void dac_read(char *a)
       dac_v,
       (fail & 0xF00) == 0 ? " OK " : "FAIL"
   );
+  if ((fail & 0xFFF) == 0) ret++;
+  return ret;
 }

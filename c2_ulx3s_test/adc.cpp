@@ -137,8 +137,9 @@ void adc_init()
   configureMax1112x();
 }
 
-void adc_read(char *a)
+int adc_read(char *a)
 {
+  int ret = 0;
   static uint8_t skip_eval = 5; // skip evaluation for first few readings
   static uint16_t reading[10], prev_reading[10];
   // alternating LED state will also alternate
@@ -175,16 +176,18 @@ void adc_read(char *a)
       {
         if(i & 1)
         {
-          if(reading[i] < ((i << 12) + 0x080) && prev_reading[i] > ((i << 12) + 0xF80) )
+          if(reading[i] < ((i << 12) + 0x080) && prev_reading[i] > ((i << 12) + 0xF80) ) {
             channel_eval[i] = " OK ";
-          else
+            ret++;
+          } else
             channel_eval[i] = "FAIL";
         }
         else
         {
-          if(prev_reading[i] < ((i << 12) + 0x080) && reading[i] > ((i << 12) + 0xF80) )
+          if(prev_reading[i] < ((i << 12) + 0x080) && reading[i] > ((i << 12) + 0xF80) ) {
             channel_eval[i] = " OK ";
-          else
+            ret++;
+          } else
             channel_eval[i] = "FAIL";
         }
       }
@@ -229,4 +232,5 @@ void adc_read(char *a)
     else
       *gpio1_out |= gpio1_bits;
   }
+  return ret;
 }

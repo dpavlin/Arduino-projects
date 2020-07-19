@@ -14,11 +14,14 @@ uint8_t flash_id(void)
 }
 
 // set up variables using the SD utility library functions:
-void flash_read(char *a)
+int flash_read(char *a)
 {
+  int ret = 0;
   uint8_t id = flash_id();
-  if(id >= 0x15 && id <= 0x17)
+  if(id >= 0x15 && id <= 0x17) {
     sprintf(a, "FLASH: %02x OK  ", id);
-  else
+    ret = 1;
+  } else
     sprintf(a, "FLASH: %02x FAIL", id);
+  return ret;
 }

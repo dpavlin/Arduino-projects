@@ -14,10 +14,38 @@ void btn_init()
     pinMode(i, OUTPUT);
 }
 
-void btn_read(char *line)
+uint8_t btn[6];
+uint8_t btn_toggle[6] = { 0,0,0,0,0,0 };
+
+int btn_read(char *line)
 {
+  int ret = 0;
   static uint8_t shiftdata = 0;
   uint8_t led = B10001 << (shiftdata++ & 3);
+
+  Serial.print("btn_toggle=");
+  for(int i=0; i<=6; i++) {
+    btn[i] = digitalRead(i);
+    if ( i == 0 ) btn[i] = !btn[i];
+    if ( btn[i] ) {
+      digitalWrite(8+i, 1);
+      if ( btn_toggle[i] == 0 ) {
+        btn_toggle[i]++; // press
+      }
+    } else {
+      digitalWrite(8+i, 0);
+      if ( btn_toggle[i] == 1 ) {
+        btn_toggle[i]++; // release
+      }
+    }
+    if (btn_toggle[i] == 2) {
+      ret++;
+      //digitalWrite(8+i, 1);
+    }
+    Serial.print(btn_toggle[i]);
+  }
+  Serial.println();
+  
   sprintf(line, "BTN:%c%c%c%c%c%c%c SW:%c%c%c%c LED:%c%c%c%c%c%c%c%c\n",
     digitalRead(0) ? '_' : '0',
     digitalRead(1) ? '1' : '_',
@@ -39,6 +67,7 @@ void btn_read(char *line)
     led & B00000010 ? '1' : '_',
     led & B00000001 ? '0' : '_'
   );
-  for(int i = 0; i < 8; i++)
-    digitalWrite(8+i, led & (1<<i) ? 1 : 0);
+  //for(int i = 0; i < 8; i++)
+  //  digitalWrite(8+i, led & (1<<i) ? 1 : 0);
+  return ret;
 }

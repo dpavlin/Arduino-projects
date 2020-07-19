@@ -41,8 +41,9 @@ Sd2Card card;
 SdVolume volume;
 SdFile root;
 // reading sd card type is slow
-void sd_read(char *a)
+int sd_read(char *a)
 {
+  int ret = 0;
   char *cardtype;
   if (card.init(SPI_HALF_SPEED, 2))
   {
@@ -61,10 +62,12 @@ void sd_read(char *a)
       cardtype = "? ";
     }
     sprintf(a, "SD: %s OK", cardtype);
+    ret = 1;
   }
   else
   {
     sprintf(a, "SD: FAIL ");
   }
+  return ret;
 }
 #endif

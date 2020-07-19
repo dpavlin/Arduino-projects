@@ -35,7 +35,7 @@ int inByte = 0;         // incoming serial byte
 int count = 0; 
 char edidarray[128];
 
-void edid_setup()
+int edid_setup()
 {
   Wire.setClock(100000L); // 100000-400000
   Wire.begin();        // join i2c bus (address optional for master)
@@ -265,8 +265,10 @@ void edid_loop()
   }
 }
 
-void edid_read(char *a)
+int edid_read(char *a)
 {
+  int ret = 0;
+
   for(byte i = 0; i < 128; i++)
     edidarray[i] = i;
   int edid_count = edidreadbytes(edidarray);
@@ -276,4 +278,6 @@ void edid_read(char *a)
     edid_checksum,
     edid_checksum == 0 ? "OK" : "FAIL"
   );
+  if ( edid_checksum == 0 ) ret++;
+  return ret;
 }

@@ -1,1 +1,1 @@
-void sd_read(char *a);
+int sd_read(char *a);

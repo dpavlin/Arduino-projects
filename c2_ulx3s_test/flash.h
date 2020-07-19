@@ -1,1 +1,1 @@
-void flash_read(char *a);
+int flash_read(char *a);

@@ -1,2 +1,2 @@
 void dac_init();
-void dac_read(char *a);
+int dac_read(char *a);

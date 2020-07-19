@@ -48,7 +48,7 @@ void rtc_set_clock()
   regwrite(0x03, 0x07 | 8); // weekday | battery_backup
   regwrite(0x02, 0x23); // hour
   regwrite(0x01, 0x59); // minute
-  regwrite(0x00, 0x00 | 0x80); // second | start_oscillator
+  regwrite(0x00, 0x58 | 0x80); // second | start_oscillator
 }
 
 void rtc_set_alarm()
@@ -74,13 +74,20 @@ void rtc_init() {
   regwrite(0x08, 0x45);
 }
 
-void rtc_read(char *a)
+int rtc_read(char *a)
 {
+  int ret = 0;
   char *eval;
   uint8_t yr = regread(0x06,1) & 0x3F;
-  if(yr >= 0x17 && yr <= 0x18)
-    eval = regread(0x0D,1) & 8 ? " OK " : "WAIT";
-  else
+  if(yr >= 0x17 && yr <= 0x18) {
+    //eval = regread(0x0D,1) & 8 ? " OK " : "WAIT";
+    if ( regread(0x0D,1) & 8 ) {
+      eval = " OK ";
+      ret = 1;
+    } else {
+      eval = "WAIT";
+    }
+  } else
     eval = "FAIL";
   sprintf(a, "20%02x-%02x-%02x %02x:%02x:%02x %s *-%02x %02x:%02x:%02x\n",
     regread(0x06,1) & 0x3F, // year
@@ -95,4 +102,5 @@ void rtc_read(char *a)
     regread(0x0B,1) & 0x7F, // alarm minute
     regread(0x0A,1) & 0x7F  // alarm second
   );
+  return ret;
 }
