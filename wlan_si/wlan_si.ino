@@ -9,6 +9,11 @@ int pir = 6; // PIR on d6
 // hardware based on https://dev.wlan-si.net/wiki/Telemetry/sensgw
 // original software https://github.com/SloMusti/sensgw
 
+#include "RunningAverage.h"
+
+RunningAverage pressureKPA_avg(100);
+RunningAverage temperatureC_avg(100);
+
 void setup(void) 
 {
   Serial.begin(9600);
@@ -21,6 +26,8 @@ void setup(void)
   pinMode(pir, INPUT);
 }
 
+int count = 0;
+
 void loop(void) 
 {
   digitalWrite(led, HIGH);
@@ -28,8 +35,12 @@ void loop(void)
   float pressureKPA = 0, temperatureC = 0;    
 
   mpl115a2.getPT(&pressureKPA,&temperatureC);
-  Serial.print("Pressure="); Serial.print(pressureKPA, 4); Serial.print(" kPa ");
-  Serial.print("Temp="); Serial.print(temperatureC, 1); Serial.print(" C");
+  pressureKPA_avg.addValue(pressureKPA);
+  temperatureC_avg.addValue(temperatureC);
+
+  if ( count++ % 10 == 0 ) {
+  Serial.print("Pressure="); Serial.print(pressureKPA_avg.getAverage(), 4); Serial.print(" kPa ");
+  Serial.print("Temp="); Serial.print(temperatureC_avg.getAverage(), 2); Serial.print(" C");
 
   Serial.print(" PIR="); Serial.print( digitalRead(pir) );
 
@@ -37,7 +48,9 @@ void loop(void)
 
   Serial.println();
 
+  }
+
   digitalWrite(led, LOW);
   
-  delay(1000);
+  delay(100);
 }

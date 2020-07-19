@@ -5,13 +5,13 @@
   RPI pin  Arduino
   RXD      TXD
   TXD      RXD
-  GPIO6    RST
+  BCM25    RST
   GND      GND
   +5V      RAW
 
            2    433Mhz receive
 //           3    433Mhz outdoor temperature sensor receiver # DISABLED
-           8    DHT22
+           8    DHT22 (VCC from arduino VCC)
            10   433Mhz send
            11   DS18B20
            12   315Mhz send
@@ -40,7 +40,7 @@ DallasTemperature sensors(&oneWire);
 int int_0 = 300; // ms
 int int_1 = 900; // ms
 int wait  = 2000; // ms
-int repeat = 20; // times (5 times seem a little low for sensors which are more than 10m away)
+int repeat = 5; // times (5 times seem a little low for sensors which are more than 10m away)
 
 void send_315(char *code) {
   Serial.print("send 315Mhz ");
@@ -76,6 +76,11 @@ void send_315(char *code) {
 #include "DHT.h"
 DHT dht;
 
+#include "RunningAverage.h"
+
+RunningAverage temp_avg(10);
+RunningAverage hum_avg(10);
+
 // setup
 
 void help() {
@@ -83,7 +88,7 @@ void help() {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   mySwitch.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2  
   mySwitch.enableTransmit(10); // with sender wired in receiving doesn't work, pin #10
   mySwitch.setRepeatTransmit(repeat); // or change to be different for 433 and 315 MHz
@@ -94,13 +99,33 @@ void setup() {
   // DHT22
   dht.setup(8);
 
+    temp_avg.addValue( dht.getTemperature() );
+    hum_avg.addValue( dht.getHumidity() );
+
 }
 
 int serial_pos = 0;
 char serial_data[2]; // socket (0-9), state (0-1)
 char binary_data[32];
+unsigned int dht22_errors = 0;
+
+unsigned long time = millis();
 
 void loop() {
+  if ( millis() - time > 2000 ) {
+    float t = dht.getTemperature();
+    float delta_t = abs(t - temp_avg.getAverage());
+    if ( dht.getStatus() == 0 && delta_t < 5 )
+      temp_avg.addValue( t );
+    else dht22_errors++;
+    float h = dht.getHumidity();
+    float delta_h = abs(h - hum_avg.getAverage());
+    if ( dht.getStatus() == 0 && delta_h < 10 )
+      hum_avg.addValue( h );
+    else dht22_errors++;
+    time = millis();
+  }
+
   if (mySwitch.available()) {
     Serial.print(mySwitch.getReceivedBitlength());
     Serial.print(" bits ");
@@ -147,11 +172,11 @@ void loop() {
      // DHT22
      if (input == 'd') {
        Serial.print("temperature=");
-       Serial.print(dht.getTemperature());
+       Serial.print(temp_avg.getAverage());
        Serial.print(" humidity=");
-       Serial.print(dht.getHumidity());
-       Serial.print(" status=");
-       Serial.println(dht.getStatusString());
+       Serial.print(hum_avg.getAverage());
+       Serial.print(" errors=");
+       Serial.println(dht22_errors);
      }
 
      if ( input >= 0x30 && input <= 0x39 && serial_pos < 2 ) {

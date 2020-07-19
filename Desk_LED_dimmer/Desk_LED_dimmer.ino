@@ -3,21 +3,40 @@
     2016-01-10 Dobrica Pavlinusic <dpavlin@rot13.org>
 */
 
+#include <EEPROM.h>
+
 const int led_pin = 13;
 const int buzzer_pin = 4;
 const int mosfet_pins[] = { 9, 10, 6 }; // PWM pins: 3,5,6,9,10,11
 const int ldr_pin = A3; // LDR +5 -- A3 -[10K]- GND
 const int pir_pin = A2;
 
+
 #define TOUCHPAD 1 // set this to 0 if debugging without touchpad
+
+int LDR_SIZE = 1;	// 1 number of LDR reading to average
+int LDR_NOISE = 6;	// 6 calibrate LDR noise level 
+int LDR_CHANGE = 1;	// do we report LDR changes?
+
 #define PIR_TIMEOUT 10 // s
 
 #if TOUCHPAD
 #include <ps2.h>
 PS2 mouse(8, 7); // PS2 synaptics clock, data
 #endif
+#define TP_LANDSCAPE 0
 
-int mosfet_pwm[] = { 255, 255, 255 }; // initial and current state of mosfet pwm
+
+int mosfet_pwm[] = { 1, 1, 1 }; // initial and current state of mosfet pwm
+
+void MOSFET_PWM(int i, int pwm) {
+        analogWrite(mosfet_pins[i], pwm);
+	Serial.print("MOSFET=");
+	Serial.print(i);
+	Serial.print(":");
+	Serial.println(pwm);
+}
+
 
 void setup() {
   Serial.begin(115200);
@@ -30,10 +49,11 @@ void setup() {
 
   for(int i=0; i<=2; i++) {
     pinMode(mosfet_pins[i], OUTPUT);
-    analogWrite(mosfet_pins[i], mosfet_pwm[i]);
+    analogWrite(mosfet_pins[i], 0);
   }
 
   pinMode(ldr_pin, INPUT);
+
   pinMode(pir_pin, INPUT);
 
 #if TOUCHPAD
@@ -71,7 +91,24 @@ void setup() {
 
 #endif
 
-  Serial.println("Commands: b - beep, qwe/asd/zxc - MOSFETs");
+  Serial.print("Commands: b - beep, qwe/asd/zxc - MOSFETs, hjkl - single step fade, ui/op/[/] - LDR size-+/noise-+/read/changes, P - PIR\nLDR = ");
+  int ldr = analogRead(ldr_pin);
+  Serial.println(ldr);
+
+  for(int i=0; i<=2; i++) {
+    analogWrite(mosfet_pins[i], 1);
+    delay(100);
+    int ldr = analogRead(ldr_pin);
+    Serial.println(ldr);
+    analogWrite(mosfet_pins[i], 0);
+  }
+
+  // recall startup values
+  for(int i=0; i<=2; i++) {
+    int pwm = EEPROM.read(i);
+    mosfet_pwm[i] = pwm;
+    analogWrite(mosfet_pins[i], pwm);
+  }
 
   digitalWrite(led_pin, LOW);
 
@@ -83,18 +120,14 @@ void mosfet(int nr, int value) {
     Serial.println("ignored");
     return;
   }
-  Serial.print("MOSFET ");
-  Serial.print(nr);
-  Serial.print(" = ");
-  Serial.println(value);
-  int sleep = 1000 / abs(pwm - value);
+  int sleep = 200 / abs(pwm - value); // changes bigger than 200 (on/off) will be instant
   int step = pwm < value ? 1 : -1;
-  for(int i=pwm; i != value; i += step) {
+  for(int i=pwm + step; i != value; i += step) {
+    //MOSFET_PWM(nr, i);
     analogWrite(mosfet_pins[nr], i);
-    Serial.println(i);
     delay(sleep);
   }
-  analogWrite(mosfet_pins[nr], value);
+  MOSFET_PWM(nr, value);
   mosfet_pwm[nr] = value;
 }
 
@@ -103,13 +136,14 @@ unsigned int last_cx = 0;
 unsigned int last_cy = 0;         
 
 int last_ldr = 0;
-// number of LDR reading to average
-#define LDR_SIZE 100
 static int ldr_sum = 0;
 static int ldr_count = 0;
 
 int last_pir = 0;
 long int pir_millis = millis();
+
+int vi_nr = 0; // mosfet to fade with vi binadings
+
 
 void loop() {
 
@@ -148,23 +182,72 @@ void loop() {
     Serial.print("\tZ=");
     Serial.print(mz, DEC);
     if ( cx > 1100 && cy > 800 ) {
+#if TP_LANDSCAPE
       int nr  = ( cx - 1100 ) / (( 5800 - 1100 ) / 3);
       int pwm = ( cy - 800  ) / (( 5000 - 800  ) / 255);
+#else
+      int pwm = ( cx - 1100 ) / (( 5800 - 1100 ) / 255);
+      int nr  = ( cy - 800  ) / (( 5000 - 800  ) / 4);
+      if ( nr > 2 ) nr -= 1;  // 0 [ 1 2 ] 3 -> 0 1 2
+#endif
       pwm -= 1; // allow off
       Serial.print("\tmosfet = ");
       Serial.print(nr);
       Serial.print("\tpwm = ");
       Serial.print(pwm);
       if ( nr >= 0 && nr <= 2 && pwm >= 0 && pwm <= 255 ) {
-        analogWrite(mosfet_pins[nr], pwm);
-        Serial.print("\tOK");
+        Serial.println("\tOK");
+        MOSFET_PWM(nr, pwm);
+        mosfet_pwm[nr] = pwm;
       } else {
-        Serial.print("\tIGNORED");
+        Serial.println("\tIGNORED");
       }
     }
-    Serial.println();
   }
 #endif
+
+
+  int ldr = analogRead(ldr_pin);
+  ldr_sum += ldr;
+  ldr_count++;
+  if ( ldr_count > LDR_SIZE ) {
+    ldr = ldr_sum / ldr_count;
+    ldr_count = 0;
+    ldr_sum = 0;
+
+    if ( abs(ldr-last_ldr) > LDR_NOISE && LDR_CHANGE ) {  
+      Serial.print("LDR = ");
+      Serial.println(ldr);
+      last_ldr = ( last_ldr + ldr ) / 2;
+    }
+  }
+
+
+  int pir = digitalRead(pir_pin);
+  if ( pir != last_pir) {
+    last_pir = pir;
+    Serial.print("PIR = ");
+    Serial.println(pir);
+  }
+
+  long int ms = millis();
+  if ( pir == 0 ) {
+    if (pir_millis > 0 && ms - pir_millis > PIR_TIMEOUT * 1000 ) {
+      Serial.println("PIR timeout, fade-out");
+      pir_millis = -1; // mark that we are in timeout
+      for(int i=0; i<=2; i++) {
+        MOSFET_PWM(i, 0);
+      }
+    }
+  } else {
+    if (pir_millis < 0) {
+      Serial.println("PIR fade-in after timeout");
+      for(int i=0; i<=2; i++) {
+        MOSFET_PWM(i, mosfet_pwm[i]);
+      }
+    }
+    pir_millis = ms;
+  }
 
 
   if (Serial.available()) {
@@ -187,6 +270,27 @@ void loop() {
       case 'd': mosfet(2, 127); break;
       case 'c': mosfet(2, 0); break;
 
+      // vi mappings
+      case 'h': vi_nr = ( vi_nr - 1 + 3 ) % 3; Serial.println(vi_nr); break;
+      case 'j': mosfet(vi_nr, (mosfet_pwm[vi_nr]-1+255)%255 ); break;
+      case 'k': mosfet(vi_nr, (mosfet_pwm[vi_nr]+1)%255 ); break;
+      case 'l': vi_nr = ( vi_nr + 1 ) % 3; Serial.println(vi_nr); break;
+
+      // LDR
+      case 'u': LDR_SIZE -= 1; Serial.println(LDR_SIZE); break;
+      case 'i': LDR_SIZE += 1; Serial.println(LDR_SIZE); break;
+      case 'o': LDR_NOISE -= 1; Serial.println(LDR_NOISE); break;
+      case 'p': LDR_NOISE += 1; Serial.println(LDR_NOISE); break;
+      case '[': Serial.println(ldr); break;
+      case ']': LDR_CHANGE = ! LDR_CHANGE; break;
+
+      case 'P': Serial.println(pir); break;
+
+      case 'S':
+        for(int i=0; i<3; i++) EEPROM.write(i, mosfet_pwm[i]);
+        Serial.println("EEPROM store brightness");
+	break;
+
       /*
               m1 = (m1 + 10) % 255;
               analogWrite(mosfet1_pin, m1);
@@ -205,48 +309,6 @@ void loop() {
         Serial.println(in);
     }
     digitalWrite(led_pin, LOW);
-  }
-
-  int ldr = analogRead(ldr_pin);
-  ldr_sum += ldr >> 2;
-  ldr_count++;
-  if ( ldr_count > LDR_SIZE ) {
-    ldr = ldr_sum / ldr_count;
-    ldr_count = 0;
-    ldr_sum = 0;
-
-    if ( abs(ldr - last_ldr) > 5 ) {  
-      Serial.print("LDR = ");
-      Serial.println(ldr);
-    }
-    last_ldr = ldr;
-  }
-
-
-  int pir = digitalRead(pir_pin);
-  if ( pir != last_pir) {
-    last_pir = pir;
-    Serial.print("PIR = ");
-    Serial.println(pir);
-  }
-
-  long int ms = millis();
-  if ( pir == 0 ) {
-    if (pir_millis > 0 && ms - pir_millis > PIR_TIMEOUT * 1000 ) {
-      Serial.println("PIR timeout, fade-out");
-      pir_millis = -1; // mark that we are in timeout
-      for(int i=0; i<=2; i++) {
-        analogWrite(mosfet_pins[i], 0);
-      }
-    }
-  } else {
-    if (pir_millis < 0) {
-      Serial.println("PIR fade-in after timeout");
-      for(int i=0; i<=2; i++) {
-        analogWrite(mosfet_pins[i], mosfet_pwm[i]);
-      }
-    }
-    pir_millis = ms;
   }
 
 }
