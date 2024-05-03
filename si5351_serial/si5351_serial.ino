@@ -20,8 +20,14 @@
 #include "si5351.h"
 #include "Wire.h"
 #include <SerialCommands.h>
+#include <EEPROM.h>
 
 Si5351 si5351;
+
+const byte eeprom_magic = 0x42;
+bool eeprom_magic_ok = false;
+float current_freq = 0.5; // Mhz
+
 
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\n", " ");
@@ -33,7 +39,23 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd)
   sender->GetSerial()->println("]");
   sender->GetSerial()->println("set frequency in Mhz: f 3.14");
   sender->GetSerial()->println("status: s");
+  sender->GetSerial()->println("write to eeprom: w");
+  sender->GetSerial()->print("current_freq=");
+  sender->GetSerial()->print(current_freq, 5);
+  sender->GetSerial()->println(" Mhz");
+  
 
+}
+
+
+void set_clk0_freq(float freq) {
+  Serial.print("set_clk0_freq ");
+  Serial.println(freq, 5);
+  // * 2.5 since reference is 10 Mhz, not 25 Mhz
+  si5351.set_freq(100000000ULL * freq * 2.5, SI5351_CLK0);
+  print_status();
+  current_freq = freq;
+  
 }
 
 //expects one single parameter
@@ -53,9 +75,7 @@ void cmd_f(SerialCommands* sender)
   sender->GetSerial()->print("set frequency to ");
   sender->GetSerial()->println(freq, 5); // 5 decimal places
 
-  // * 2.5 since reference is 10 Mhz, not 25 Mhz
-  si5351.set_freq(100000000ULL * freq * 2.5, SI5351_CLK0);
-  print_status();
+  set_clk0_freq(freq);  
 }
 
 void cmd_s(SerialCommands* sender)
@@ -63,8 +83,21 @@ void cmd_s(SerialCommands* sender)
   print_status();
 }
 
+void cmd_w(SerialCommands* sender)
+{
+  if (! eeprom_magic_ok) {
+    EEPROM.put(0, eeprom_magic);
+    eeprom_magic_ok = true;
+  }
+  EEPROM.put(1, current_freq);
+  sender->GetSerial()->println("eeprom save of frequency ");
+  sender->GetSerial()->println(current_freq, 5); // 5 decimal places
+}
+
+
 SerialCommand cmd_f_("f", cmd_f);
 SerialCommand cmd_s_("s", cmd_s);
+SerialCommand cmd_w_("w", cmd_w);
 
 
 
@@ -86,18 +119,21 @@ void setup()
     Serial.println("Device not found on I2C bus!");
   }
 
-  // Set CLK0 to output 1 MHz * 2.5 - reference 10Mhz, not 25Mhz
-  si5351.set_freq(100000000ULL * 2.5, SI5351_CLK0);
+  byte eeprom_ok; 
+  EEPROM.get(0, eeprom_ok);
+  if (eeprom_ok == eeprom_magic) {
+    eeprom_magic_ok = true;
+    EEPROM.get(1, current_freq); 
+  } else {
+    Serial.println("EEPROM data invalid, set frequency with 'f 1.234' in Mhz and issue w");
+  }
 
-  // Query a status update and wait a bit to let the Si5351 populate the
-  // status flags correctly.
-  si5351.update_status();
-  delay(500);
-  print_status();
-
+  set_clk0_freq(current_freq);
+  
   serial_commands_.SetDefaultHandler(cmd_unrecognized);
   serial_commands_.AddCommand(&cmd_f_);
   serial_commands_.AddCommand(&cmd_s_);
+  serial_commands_.AddCommand(&cmd_w_);
 
 
 }
