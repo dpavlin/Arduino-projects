@@ -22,13 +22,19 @@
 #include <SerialCommands.h>
 #include <EEPROM.h>
 
+#define MAX_CHANNEL 2 // max. number of channels
+// 2.5 = assumes 10Mhz reference instead od 25Mhz so all frequences
+// will be multipled by 2.5, change to 1 if using stadard module
+//#define FREQ_MUL 2.5
+#define FREQ_MUL 1
+
+
 Si5351 si5351;
 
 const byte eeprom_magic = 0x42;
 bool eeprom_magic_ok = false;
 float current_freq = 0.5; // Mhz
 int channel = 0;
-#define MAX_CHANNEL 2
 float freqs[MAX_CHANNEL+1]; // channel 0,1,2 frequencies
 
 char serial_command_buffer_[32];
@@ -61,8 +67,7 @@ void set_clk_freq(uint8_t channel, float freq) {
   Serial.print("_freq ");
   Serial.println(freq, 5);
   freqs[channel] = freq;
-  // * 2.5 since reference is 10 Mhz, not 25 Mhz
-  si5351.set_freq(100000000ULL * freq * 2.5, channel);
+  si5351.set_freq(100000000ULL * freq * FREQ_MUL, channel);
   print_status();
   
 }
