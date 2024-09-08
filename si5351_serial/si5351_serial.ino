@@ -15,6 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * on Arduino Nano wire si5351 adafruit-like module to:
+ * SCL - A5
+ * SDA - A4
+ * GND - GND
+ * VCC - 5V
  */
 
 #include "si5351.h"
@@ -29,6 +35,7 @@
 #define FREQ_MUL 1
 
 
+// EtherKit Si5351 library
 Si5351 si5351;
 
 const byte eeprom_magic = 0x42;
@@ -38,7 +45,8 @@ int channel = 0;
 float freqs[MAX_CHANNEL+1]; // channel 0,1,2 frequencies
 
 char serial_command_buffer_[32];
-SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\n", " ");
+// SerialCommands library - end of line just CR
+SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r", " ");
 
 void cmd_unrecognized(SerialCommands* sender, const char* cmd)
 {
