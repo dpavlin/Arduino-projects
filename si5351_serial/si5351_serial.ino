@@ -38,11 +38,11 @@
 // EtherKit Si5351 library
 Si5351 si5351;
 
-const byte eeprom_magic = 0x42;
+const byte eeprom_magic = 0x43;
 bool eeprom_magic_ok = false;
 float current_freq = 0.5; // Mhz
 int channel = 0;
-float freqs[MAX_CHANNEL+1]; // channel 0,1,2 frequencies
+float freqs[MAX_CHANNEL+1] = { 1,2,3 }; // channel 0,1,2 frequencies
 
 char serial_command_buffer_[32];
 // SerialCommands library - end of line just CR
@@ -56,9 +56,12 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd)
   sender->GetSerial()->println("set frequency in Mhz: f 3.14");
   sender->GetSerial()->print("set channel 0-");
   sender->GetSerial()->print(MAX_CHANNEL);
-  sender->GetSerial()->print(": c 1");
+  sender->GetSerial()->println(": c 1");
   sender->GetSerial()->println("status: s");
   sender->GetSerial()->println("write to eeprom: w");
+  sender->GetSerial()->println("step (-/+ =) size change: step 0.5");
+  sender->GetSerial()->println("reset from eeprom: r");
+  
   sender->GetSerial()->print("channel=");
   sender->GetSerial()->print(channel);
   sender->GetSerial()->print(" current_freq=");
@@ -121,6 +124,7 @@ void cmd_s(SerialCommands* sender)
   print_status();
 }
 
+void cmd_r(SerialCommands* sender) { read_eeprom(); }
 void cmd_w(SerialCommands* sender)
 {
   if (! eeprom_magic_ok) {
@@ -161,11 +165,13 @@ void cmd_c(SerialCommands* sender)
 #define SERIAL_COMMANDS_DEBUG 1
 
 
-SerialCommand cmd_f_("f", cmd_f);
-SerialCommand cmd_s_("s", cmd_s);
-SerialCommand cmd_w_("w", cmd_w);
+SerialCommand cmd_f_("f", cmd_f); /* freq */
+SerialCommand cmd_s_("s", cmd_s); /* status */
+SerialCommand cmd_w_("w", cmd_w); /* write */
+SerialCommand cmd_r_("r", cmd_r); /* read/reset */
 SerialCommand cmd_c_("c", cmd_c);
 SerialCommand cmd_step_("step", cmd_step);
+SerialCommand cmd_step2_("s", cmd_step);
 
 // onekey, ative after last line terminator
 SerialCommand cmd_inc_("=", cmd_inc, true);
@@ -176,6 +182,7 @@ SerialCommand cmd_dec_("-", cmd_dec, true);
 
 void setup()
 {
+
   bool i2c_found;
 
   // Start serial and initialize the Si5351
@@ -191,6 +198,12 @@ void setup()
   {
     Serial.println("Device not found on I2C bus!");
   }
+  Serial.println("setup");
+  read_eeprom();
+}
+
+void read_eeprom() {
+  Serial.println("read_eeprom");  
   byte eeprom_ok; 
   EEPROM.get(0, eeprom_ok);
   if (eeprom_ok == eeprom_magic) {
@@ -210,6 +223,7 @@ void setup()
   serial_commands_.SetDefaultHandler(cmd_unrecognized);
   serial_commands_.AddCommand(&cmd_f_);
   serial_commands_.AddCommand(&cmd_s_);
+  serial_commands_.AddCommand(&cmd_r_);
   serial_commands_.AddCommand(&cmd_w_);
   serial_commands_.AddCommand(&cmd_c_);
 
@@ -217,6 +231,7 @@ void setup()
   serial_commands_.AddCommand(&cmd_inc2_);
   serial_commands_.AddCommand(&cmd_dec_);
   serial_commands_.AddCommand(&cmd_step_);
+  serial_commands_.AddCommand(&cmd_step2_);
 
 }
 
