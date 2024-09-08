@@ -27,7 +27,9 @@ Si5351 si5351;
 const byte eeprom_magic = 0x42;
 bool eeprom_magic_ok = false;
 float current_freq = 0.5; // Mhz
-
+int channel = 0;
+#define MAX_CHANNEL 2
+float freqs[MAX_CHANNEL+1]; // channel 0,1,2 frequencies
 
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\n", " ");
@@ -38,9 +40,14 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd)
   sender->GetSerial()->print(cmd);
   sender->GetSerial()->println("]");
   sender->GetSerial()->println("set frequency in Mhz: f 3.14");
+  sender->GetSerial()->print("set channel 0-");
+  sender->GetSerial()->print(MAX_CHANNEL);
+  sender->GetSerial()->print(": c 1");
   sender->GetSerial()->println("status: s");
   sender->GetSerial()->println("write to eeprom: w");
-  sender->GetSerial()->print("current_freq=");
+  sender->GetSerial()->print("channel=");
+  sender->GetSerial()->print(channel);
+  sender->GetSerial()->print(" current_freq=");
   sender->GetSerial()->print(current_freq, 5);
   sender->GetSerial()->println(" Mhz");
   
@@ -48,13 +55,15 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd)
 }
 
 
-void set_clk0_freq(float freq) {
-  Serial.print("set_clk0_freq ");
+void set_clk_freq(uint8_t channel, float freq) {
+  Serial.print("set_clk");
+  Serial.print(channel);
+  Serial.print("_freq ");
   Serial.println(freq, 5);
+  freqs[channel] = freq;
   // * 2.5 since reference is 10 Mhz, not 25 Mhz
-  si5351.set_freq(100000000ULL * freq * 2.5, SI5351_CLK0);
+  si5351.set_freq(100000000ULL * freq * 2.5, channel);
   print_status();
-  current_freq = freq;
   
 }
 
@@ -71,11 +80,12 @@ void cmd_f(SerialCommands* sender)
   }
 
   float freq = atof(f_str);
+  current_freq = freq;
   
   sender->GetSerial()->print("set frequency to ");
   sender->GetSerial()->println(freq, 5); // 5 decimal places
 
-  set_clk0_freq(freq);  
+  set_clk_freq(channel, freq);  
 }
 
 void cmd_s(SerialCommands* sender)
@@ -89,15 +99,43 @@ void cmd_w(SerialCommands* sender)
     EEPROM.put(0, eeprom_magic);
     eeprom_magic_ok = true;
   }
-  EEPROM.put(1, current_freq);
-  sender->GetSerial()->println("eeprom save of frequency ");
-  sender->GetSerial()->println(current_freq, 5); // 5 decimal places
+  for(int c=0; c<=MAX_CHANNEL; c++) {
+    float f = freqs[c];
+    EEPROM.put(1+(c*4), f); // each float is 4 bytes
+  
+    sender->GetSerial()->print("eeprom save of channel ");
+    sender->GetSerial()->print(c);
+    sender->GetSerial()->print(" frequency ");
+    sender->GetSerial()->println(f, 5); // 5 decimal places
+  }
 }
+void cmd_c(SerialCommands* sender)
+{
+  char* f_str = sender->Next();
+  if (f_str == NULL)
+  {
+    sender->GetSerial()->println("ERROR no channel");
+    return;
+  }
+
+  channel = atoi(f_str);
+  if (channel > 2)
+  {
+    sender->GetSerial()->println("ERROR channel must be 0, 1 or 2");
+    return;
+  }
+  
+  sender->GetSerial()->print("channel ");
+  sender->GetSerial()->println(channel);
+
+}
+
 
 
 SerialCommand cmd_f_("f", cmd_f);
 SerialCommand cmd_s_("s", cmd_s);
 SerialCommand cmd_w_("w", cmd_w);
+SerialCommand cmd_c_("c", cmd_c);
 
 
 
@@ -118,22 +156,27 @@ void setup()
   {
     Serial.println("Device not found on I2C bus!");
   }
-
   byte eeprom_ok; 
   EEPROM.get(0, eeprom_ok);
   if (eeprom_ok == eeprom_magic) {
     eeprom_magic_ok = true;
-    EEPROM.get(1, current_freq); 
+    for(int c=0; c<=MAX_CHANNEL; c++) {
+      float f;
+      EEPROM.get(1 + (c*4), f);
+      set_clk_freq(c, f);
+      freqs[c] = f;
+    } 
+
   } else {
     Serial.println("EEPROM data invalid, set frequency with 'f 1.234' in Mhz and issue w");
   }
 
-  set_clk0_freq(current_freq);
   
   serial_commands_.SetDefaultHandler(cmd_unrecognized);
   serial_commands_.AddCommand(&cmd_f_);
   serial_commands_.AddCommand(&cmd_s_);
   serial_commands_.AddCommand(&cmd_w_);
+  serial_commands_.AddCommand(&cmd_c_);
 
 
 }
@@ -157,5 +200,11 @@ void print_status()
   Serial.print(si5351.dev_status.LOS);
   Serial.print("  REVID: ");
   Serial.println(si5351.dev_status.REVID);
-  
+  Serial.print("freq 0=");
+  Serial.print(freqs[0],5);
+  Serial.print(" 1=");
+  Serial.print(freqs[1],5);
+  Serial.print(" 2=");
+  Serial.print(freqs[2],5);
+  Serial.println(" Mhz");
 }
