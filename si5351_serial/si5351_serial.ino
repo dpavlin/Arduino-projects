@@ -80,6 +80,10 @@ void set_clk_freq(uint8_t channel, float freq) {
   
 }
 
+uint8_t step = 1;
+void cmd_inc(SerialCommands* sender) { set_clk_freq(channel, freqs[channel] + step); }  
+void cmd_dec(SerialCommands* sender) { set_clk_freq(channel, freqs[channel] - step); }
+
 //expects one single parameter
 void cmd_f(SerialCommands* sender)
 {
@@ -149,6 +153,10 @@ SerialCommand cmd_f_("f", cmd_f);
 SerialCommand cmd_s_("s", cmd_s);
 SerialCommand cmd_w_("w", cmd_w);
 SerialCommand cmd_c_("c", cmd_c);
+// onekey, ative after last line terminator
+SerialCommand cmd_inc_("=", cmd_inc, true);
+SerialCommand cmd_inc2_("+", cmd_inc, true);
+SerialCommand cmd_dec_("-", cmd_dec, true);
 
 
 
@@ -191,6 +199,10 @@ void setup()
   serial_commands_.AddCommand(&cmd_w_);
   serial_commands_.AddCommand(&cmd_c_);
 
+  serial_commands_.AddCommand(&cmd_inc_);
+  serial_commands_.AddCommand(&cmd_inc2_);
+  serial_commands_.AddCommand(&cmd_dec_);
+
 
 }
 
@@ -213,6 +225,7 @@ void print_status()
   Serial.print(si5351.dev_status.LOS);
   Serial.print("  REVID: ");
   Serial.println(si5351.dev_status.REVID);
+  
   Serial.print("freq 0=");
   Serial.print(freqs[0],5);
   Serial.print(" 1=");
@@ -220,4 +233,5 @@ void print_status()
   Serial.print(" 2=");
   Serial.print(freqs[2],5);
   Serial.println(" Mhz");
+
 }
